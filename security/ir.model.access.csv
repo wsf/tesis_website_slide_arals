@@ -1,3 +1,14 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_historial_progreso,access.historial.progreso,model_slide_historial_progreso,,1,1,1,1
-access_ruta_aprendizaje,access.ruta.aprendizaje,model_slide_ruta_aprendizaje,,1,1,1,1
+# Historial de Progreso
+access_historial_progreso_all,Historial Progreso All Users,model_slide_historial_progreso,,1,0,0,0
+access_historial_progreso_student,Historial Progreso Students,model_slide_historial_progreso,base.group_user,1,0,1,0
+access_historial_progreso_teacher,Historial Progreso Teachers,model_slide_historial_progreso,website_slides.group_website_slides_manager,1,1,1,1
+
+# Rutas de Aprendizaje  
+access_ruta_aprendizaje_all,Rutas Aprendizaje All Users,model_slide_ruta_aprendizaje,,1,0,0,0
+access_ruta_aprendizaje_student,Rutas Aprendizaje Students,model_slide_ruta_aprendizaje,base.group_user,1,0,1,0
+access_ruta_aprendizaje_teacher,Rutas Aprendizaje Teachers,model_slide_ruta_aprendizaje,website_slides.group_website_slides_manager,1,1,1,1
+
+# Slide Extension - todos pueden leer, solo managers pueden escribir
+access_slide_extension,Slide Extension Access,website_slides.model_slide_slide,base.group_user,1,0,0,0
+access_slide_extension_manager,Slide Extension Manager,website_slides.model_slide_slide,website_slides.group_website_slides_manager,1,1,1,0

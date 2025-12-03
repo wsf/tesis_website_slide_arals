@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Vista Tree para Rutas de Aprendizaje -->
+        <record id="view_ruta_aprendizaje_tree" model="ir.ui.view">
+            <field name="name">slide.ruta.aprendizaje.tree</field>
+            <field name="model">slide.ruta.aprendizaje</field>
+            <field name="arch" type="xml">
+                <tree string="Rutas de Aprendizaje" decoration-muted="not activa" decoration-success="progreso_ruta == 100">
+                    <field name="name"/>
+                    <field name="user_id"/>
+                    <field name="channel_id"/>
+                    <field name="nivel_dificultad" widget="badge"/>
+                    <field name="total_slides"/>
+                    <field name="progreso_ruta" widget="progressbar"/>
+                    <field name="fecha_creacion"/>
+                    <field name="activa" widget="boolean_toggle"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Vista Form para Rutas de Aprendizaje -->
+        <record id="view_ruta_aprendizaje_form" model="ir.ui.view">
+            <field name="name">slide.ruta.aprendizaje.form</field>
+            <field name="model">slide.ruta.aprendizaje</field>
+            <field name="arch" type="xml">
+                <form string="Ruta de Aprendizaje">
+                    <header>
+                        <button name="actualizar_recomendaciones" string="Actualizar Recomendaciones" 
+                                type="object" class="btn-primary" 
+                                help="Actualiza las diapositivas recomendadas basándose en el progreso actual"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button class="oe_stat_button" type="object" name="action_view_progreso"
+                                    icon="fa-chart-line" help="Ver progreso detallado">
+                                <field string="Progreso" name="progreso_ruta" widget="statinfo"/>
+                            </button>
+                            <button class="oe_stat_button" type="object" 
+                                    icon="fa-file-text-o" help="Total de diapositivas en la ruta">
+                                <field string="Diapositivas" name="total_slides" widget="statinfo"/>
+                            </button>
+                        </div>
+                        
+                        <widget name="web_ribbon" title="Inactiva" bg_color="bg-danger" 
+                                attrs="{'invisible': [('activa', '=', True)]}"/>
+                        <widget name="web_ribbon" title="Completada" bg_color="bg-success" 
+                                attrs="{'invisible': [('progreso_ruta', '!=', 100)]}"/>
+
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+                        
+                        <group>
+                            <group name="info_general" string="Información General">
+                                <field name="user_id" options="{'no_create': True, 'no_edit': True}"/>
+                                <field name="channel_id" options="{'no_create': True, 'no_edit': True}"/>
+                                <field name="nivel_dificultad"/>
+                                <field name="activa"/>
+                            </group>
+                            <group name="fechas" string="Fechas">
+                                <field name="fecha_creacion" readonly="1"/>
+                                <field name="fecha_actualizacion" readonly="1"/>
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page string="Diapositivas Recomendadas" name="slides">
+                                <field name="slide_ids">
+                                    <tree editable="bottom" decoration-success="nivel_dificultad == 'basico'" 
+                                          decoration-info="nivel_dificultad == 'intermedio'" 
+                                          decoration-warning="nivel_dificultad == 'avanzado'">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="name"/>
+                                        <field name="channel_id" readonly="1"/>
+                                        <field name="slide_type" widget="badge"/>
+                                        <field name="nivel_dificultad" widget="badge"/>
+                                        <field name="website_published" widget="boolean_toggle"/>
+                                    </tree>
+                                </field>
+                                <div class="alert alert-info" role="alert" attrs="{'invisible': [('slide_ids', '!=', [])]}">
+                                    <strong>Sin diapositivas recomendadas</strong><br/>
+                                    Usa el botón "Actualizar Recomendaciones" para generar sugerencias automáticas 
+                                    basadas en el perfil y progreso del estudiante.
+                                </div>
+                            </page>
+                            <page string="Descripción" name="description">
+                                <field name="descripcion" placeholder="Describe los objetivos y características de esta ruta de aprendizaje..."/>
+                            </page>
+                            <page string="Análisis de Progreso" name="analytics">
+                                <group>
+                                    <group string="Estadísticas de la Ruta">
+                                        <field name="progreso_ruta" widget="progressbar"/>
+                                        <field name="total_slides" readonly="1"/>
+                                    </group>
+                                </group>
+                                <!-- Aquí se podría agregar un gráfico de progreso -->
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Vista Kanban para Rutas de Aprendizaje -->
+        <record id="view_ruta_aprendizaje_kanban" model="ir.ui.view">
+            <field name="name">slide.ruta.aprendizaje.kanban</field>
+            <field name="model">slide.ruta.aprendizaje</field>
+            <field name="arch" type="xml">
+                <kanban default_group_by="nivel_dificultad" class="o_kanban_small_column" quick_create="false">
+                    <field name="name"/>
+                    <field name="user_id"/>
+                    <field name="channel_id"/>
+                    <field name="nivel_dificultad"/>
+                    <field name="progreso_ruta"/>
+                    <field name="total_slides"/>
+                    <field name="activa"/>
+                    <field name="fecha_actualizacion"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_kanban_card oe_kanban_global_click" 
+                                 t-att-class="!record.activa.raw_value ? 'o_kanban_card_disabled' : ''">
+                                <div class="ribbon ribbon-top-right" t-if="!record.activa.raw_value">
+                                    <span class="bg-danger">Inactiva</span>
+                                </div>
+                                <div class="ribbon ribbon-top-right" t-if="record.progreso_ruta.raw_value == 100">
+                                    <span class="bg-success">Completada</span>
+                                </div>
+                                
+                                <div class="oe_kanban_content">
+                                    <div class="o_kanban_record_top">
+                                        <div class="o_kanban_record_headings">
+                                            <strong class="o_kanban_record_title">
+                                                <field name="user_id"/>
+                                            </strong>
+                                            <br/>
+                                            <span class="o_kanban_record_subtitle">
+                                                <field name="channel_id"/>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="o_kanban_record_body">
+                                        <div class="o_kanban_tags_section">
+                                            <span class="badge badge-pill" 
+                                                  t-att-class="record.nivel_dificultad.raw_value === 'basico' ? 'badge-success' : 
+                                                              record.nivel_dificultad.raw_value === 'intermedio' ? 'badge-info' : 'badge-warning'">
+                                                <field name="nivel_dificultad"/>
+                                            </span>
+                                            <span class="badge badge-pill badge-secondary">
+                                                <field name="total_slides"/> diapositivas
+                                            </span>
+                                        </div>
+                                        
+                                        <div class="mt-2">
+                                            <label class="small text-muted">Progreso:</label>
+                                            <div class="progress">
+                                                <div class="progress-bar" 
+                                                     t-att-style="'width: ' + record.progreso_ruta.value + '%'"
+                                                     t-att-class="record.progreso_ruta.raw_value == 100 ? 'progress-bar bg-success' : 
+                                                                 record.progreso_ruta.raw_value >= 70 ? 'progress-bar bg-info' :
+                                                                 record.progreso_ruta.raw_value >= 40 ? 'progress-bar bg-warning' : 'progress-bar bg-danger'"
+                                                     t-att-title="record.progreso_ruta.value + '% completado'">
+                                                    <span class="small"><field name="progreso_ruta"/>%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="o_kanban_record_bottom">
+                                        <div class="oe_kanban_bottom_left">
+                                            <span class="small text-muted">
+                                                Actualizada: <field name="fecha_actualizacion" widget="date"/>
+                                            </span>
+                                        </div>
+                                        <div class="oe_kanban_bottom_right">
+                                            <button name="actualizar_recomendaciones" type="object" 
+                                                    class="btn btn-sm btn-outline-primary" 
+                                                    title="Actualizar Recomendaciones"
+                                                    t-if="record.activa.raw_value">
+                                                <i class="fa fa-refresh"/>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- Vista Search para Rutas de Aprendizaje -->
+        <record id="view_ruta_aprendizaje_search" model="ir.ui.view">
+            <field name="name">slide.ruta.aprendizaje.search</field>
+            <field name="model">slide.ruta.aprendizaje</field>
+            <field name="arch" type="xml">
+                <search string="Buscar Rutas de Aprendizaje">
+                    <field name="name" string="Ruta"/>
+                    <field name="user_id" string="Usuario"/>
+                    <field name="channel_id" string="Curso"/>
+                    <field name="descripcion" string="Descripción"/>
+                    
+                    <separator/>
+                    <filter name="activas" string="Activas" domain="[('activa', '=', True)]" default="1"/>
+                    <filter name="inactivas" string="Inactivas" domain="[('activa', '=', False)]"/>
+                    <separator/>
+                    <filter name="sin_iniciar" string="Sin Iniciar" domain="[('progreso_ruta', '=', 0)]"/>
+                    <filter name="en_progreso" string="En Progreso" domain="[('progreso_ruta', '>', 0), ('progreso_ruta', '<', 100)]"/>
+                    <filter name="completadas" string="Completadas" domain="[('progreso_ruta', '=', 100)]"/>
+                    <separator/>
+                    <filter name="basico" string="Básico" domain="[('nivel_dificultad', '=', 'basico')]"/>
+                    <filter name="intermedio" string="Intermedio" domain="[('nivel_dificultad', '=', 'intermedio')]"/>
+                    <filter name="avanzado" string="Avanzado" domain="[('nivel_dificultad', '=', 'avanzado')]"/>
+                    <separator/>
+                    <filter name="creadas_hoy" string="Creadas Hoy" domain="[('fecha_creacion', '>=', context_today().strftime('%Y-%m-%d'))]"/>
+                    <filter name="actualizadas_hoy" string="Actualizadas Hoy" domain="[('fecha_actualizacion', '>=', context_today().strftime('%Y-%m-%d'))]"/>
+                    
+                    <group expand="0" string="Agrupar Por">
+                        <filter string="Usuario" name="group_user" context="{'group_by': 'user_id'}"/>
+                        <filter string="Curso" name="group_channel" context="{'group_by': 'channel_id'}"/>
+                        <filter string="Nivel de Dificultad" name="group_nivel" context="{'group_by': 'nivel_dificultad'}"/>
+                        <filter string="Estado" name="group_activa" context="{'group_by': 'activa'}"/>
+                        <filter string="Mes de Creación" name="group_fecha" context="{'group_by': 'fecha_creacion:month'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Vista Calendar para Rutas de Aprendizaje -->
+        <record id="view_ruta_aprendizaje_calendar" model="ir.ui.view">
+            <field name="name">slide.ruta.aprendizaje.calendar</field>
+            <field name="model">slide.ruta.aprendizaje</field>
+            <field name="arch" type="xml">
+                <calendar string="Calendario de Rutas" date_start="fecha_creacion" color="nivel_dificultad" quick_add="False" event_open_popup="True">
+                    <field name="name"/>
+                    <field name="user_id"/>
+                    <field name="progreso_ruta"/>
+                </calendar>
+            </field>
+        </record>
+
+        <!-- Vista Pivot para Análisis -->
+        <record id="view_ruta_aprendizaje_pivot" model="ir.ui.view">
+            <field name="name">slide.ruta.aprendizaje.pivot</field>
+            <field name="model">slide.ruta.aprendizaje</field>
+            <field name="arch" type="xml">
+                <pivot string="Análisis de Rutas de Aprendizaje">
+                    <field name="channel_id" type="row"/>
+                    <field name="nivel_dificultad" type="col"/>
+                    <field name="progreso_ruta" type="measure"/>
+                    <field name="total_slides" type="measure"/>
+                </pivot>
+            </field>
+        </record>
+
+        <!-- Vista Graph para Dashboard -->
+        <record id="view_ruta_aprendizaje_graph" model="ir.ui.view">
+            <field name="name">slide.ruta.aprendizaje.graph</field>
+            <field name="model">slide.ruta.aprendizaje</field>
+            <field name="arch" type="xml">
+                <graph string="Estadísticas de Rutas" type="bar">
+                    <field name="nivel_dificultad"/>
+                    <field name="progreso_ruta" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <!-- Acción de ventana -->
+        <record id="action_ruta_aprendizaje" model="ir.actions.act_window">
+            <field name="name">Rutas de Aprendizaje</field>
+            <field name="res_model">slide.ruta.aprendizaje</field>
+            <field name="view_mode">kanban,tree,form,calendar,pivot,graph</field>
+            <field name="context">{
+                'search_default_activas': 1,
+                'search_default_group_nivel': 1,
+            }</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No hay rutas de aprendizaje creadas todavía
+                </p>
+                <p>
+                    Las rutas de aprendizaje personalizan el contenido del curso basándose en el perfil 
+                    y progreso de cada estudiante. Se generan automáticamente mediante el motor de 
+                    recomendaciones ARALS.
+                </p>
+            </field>
+        </record>
+
+        <!-- Acción para crear ruta desde estudiante -->
+        <record id="action_crear_ruta_estudiante" model="ir.actions.act_window">
+            <field name="name">Crear Ruta de Aprendizaje</field>
+            <field name="res_model">slide.ruta.aprendizaje</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="context">{
+                'default_user_id': active_id,
+            }</field>
+        </record>
+
+        <!-- Menú -->
+        <menuitem 
+            id="menu_ruta_aprendizaje"
+            name="Rutas de Aprendizaje"
+            parent="website_slides.website_slides_menu_courses"
+            action="action_ruta_aprendizaje"
+            sequence="30"/>
+
+        <!-- Sub-menú para gestión avanzada -->
+        <menuitem 
+            id="menu_ruta_aprendizaje_config"
+            name="Configuración de Rutas"
+            parent="website_slides.website_slides_menu_config"
+            action="action_ruta_aprendizaje"
+            sequence="10"/>
+
+    </data>
+</odoo>

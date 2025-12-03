@@ -1,0 +1,440 @@
+/* ARALS Frontend Styles */
+
+/* Variables CSS para el sistema ARALS */
+:root {
+    --arals-primary: #007bff;
+    --arals-success: #28a745;
+    --arals-info: #17a2b8;
+    --arals-warning: #ffc107;
+    --arals-danger: #dc3545;
+    --arals-light: #f8f9fa;
+    --arals-dark: #343a40;
+    
+    --arals-border-radius: 8px;
+    --arals-box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    --arals-transition: all 0.3s ease;
+}
+
+/* Contenedor principal ARALS */
+.arals-container {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.arals-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--arals-light);
+}
+
+.arals-title {
+    color: var(--arals-primary);
+    font-weight: 300;
+    margin-bottom: 0.5rem;
+}
+
+/* Dashboard Styles */
+.o_dashboard_arals {
+    padding: 1rem;
+}
+
+.o_dashboard_section {
+    margin-bottom: 2rem;
+}
+
+.card {
+    border: none;
+    border-radius: var(--arals-border-radius);
+    box-shadow: var(--arals-box-shadow);
+    transition: var(--arals-transition);
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Progress Widget Styles */
+.arals-progress-widget .progress-stats {
+    margin-bottom: 1.5rem;
+}
+
+.stat-box {
+    padding: 1rem;
+    text-align: center;
+}
+
+.stat-box h3 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+.overall-progress .progress {
+    height: 1rem;
+    border-radius: calc(var(--arals-border-radius) / 2);
+}
+
+/* Recommendations Panel */
+.arals-recommendations-panel {
+    margin-top: 1rem;
+}
+
+.recommendation-card {
+    border-left: 4px solid var(--arals-primary);
+    transition: var(--arals-transition);
+}
+
+.recommendation-card:hover {
+    border-left-color: var(--arals-success);
+    cursor: pointer;
+}
+
+.recommendation-info h6 {
+    color: var(--arals-dark);
+    font-weight: 600;
+}
+
+.recommendation-meta .badge {
+    font-size: 0.75rem;
+}
+
+.confidence-score .score-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: conic-gradient(var(--arals-success) 0deg, var(--arals-success) calc(var(--score, 0) * 3.6deg), var(--arals-light) calc(var(--score, 0) * 3.6deg));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: var(--arals-dark);
+    margin: 0 auto;
+}
+
+/* Learning Path Styles */
+.arals-learning-path {
+    margin: 2rem 0;
+}
+
+.path-timeline {
+    position: relative;
+    padding: 1rem 0;
+}
+
+.path-timeline::before {
+    content: '';
+    position: absolute;
+    left: 25px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--arals-light);
+    z-index: 1;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 2rem;
+    padding-left: 60px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    background: white;
+    border: 2px solid var(--arals-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.timeline-item.completed .timeline-marker {
+    border-color: var(--arals-success);
+    background: var(--arals-success);
+    color: white;
+}
+
+.timeline-item.pending .timeline-marker {
+    border-color: var(--arals-warning);
+}
+
+.timeline-content .card {
+    border: 1px solid var(--arals-light);
+}
+
+.timeline-item.completed .timeline-content .card {
+    background: rgba(40, 167, 69, 0.05);
+    border-color: var(--arals-success);
+}
+
+/* Student Statistics */
+.arals-student-stats .stat-card {
+    transition: var(--arals-transition);
+    min-height: 120px;
+}
+
+.arals-student-stats .stat-card:hover {
+    transform: scale(1.05);
+}
+
+.stat-icon {
+    margin-bottom: 1rem;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0.5rem 0;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Learning Profile */
+.arals-learning-profile .learning-style-indicator {
+    margin-top: 1rem;
+}
+
+.style-bar {
+    margin-bottom: 1rem;
+}
+
+.style-bar label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.style-bar .progress {
+    height: 0.75rem;
+}
+
+/* Teacher Panel */
+.arals-teacher-panel {
+    padding: 1.5rem;
+    background: white;
+    border-radius: var(--arals-border-radius);
+    box-shadow: var(--arals-box-shadow);
+}
+
+.panel-header h3 {
+    color: var(--arals-primary);
+    margin: 0;
+}
+
+.metric-card {
+    text-align: center;
+    transition: var(--arals-transition);
+}
+
+.metric-card:hover {
+    transform: translateY(-4px);
+}
+
+.metric-card h5 {
+    color: var(--arals-dark);
+    font-weight: 500;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+}
+
+.metric-card h2 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .arals-container {
+        padding: 0.5rem;
+    }
+    
+    .o_dashboard_section .col-lg-3 {
+        margin-bottom: 1rem;
+    }
+    
+    .timeline-item {
+        padding-left: 40px;
+    }
+    
+    .path-timeline::before {
+        left: 15px;
+    }
+    
+    .timeline-marker {
+        left: 5px;
+    }
+    
+    .arals-student-stats .stat-card {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .arals-title {
+        font-size: 1.5rem;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+    }
+    
+    .metric-card h2 {
+        font-size: 2rem;
+    }
+    
+    .recommendation-card .card-body {
+        padding: 0.75rem;
+    }
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+/* Loading States */
+.btn-loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+/* Progress Bars Customizations */
+.progress-bar {
+    transition: width 1s ease-in-out;
+}
+
+/* Badges personalizados */
+.badge-success {
+    background-color: var(--arals-success) !important;
+}
+
+.badge-info {
+    background-color: var(--arals-info) !important;
+}
+
+.badge-warning {
+    background-color: var(--arals-warning) !important;
+    color: var(--arals-dark) !important;
+}
+
+/* Charts container */
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin: 1rem 0;
+}
+
+.chart-container canvas {
+    max-height: 100%;
+}
+
+/* Ribbon styles for kanban */
+.ribbon {
+    position: absolute;
+    right: -5px;
+    top: -5px;
+    z-index: 1;
+    overflow: hidden;
+    width: 75px;
+    height: 75px;
+    text-align: right;
+}
+
+.ribbon span {
+    font-size: 10px;
+    font-weight: bold;
+    color: #fff;
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 20px;
+    transform: rotate(45deg);
+    width: 100px;
+    display: block;
+    box-shadow: 0 3px 10px -5px rgba(0,0,0,1);
+    position: absolute;
+    top: 19px;
+    right: -21px;
+}
+
+.ribbon span.bg-success {
+    background: linear-gradient(var(--arals-success) 0%, darken(var(--arals-success), 15%) 100%);
+}
+
+.ribbon span.bg-danger {
+    background: linear-gradient(var(--arals-danger) 0%, darken(var(--arals-danger), 15%) 100%);
+}
+
+/* Print styles */
+@media print {
+    .arals-container {
+        color: black;
+        background: white;
+    }
+    
+    .card {
+        border: 1px solid #ddd;
+        box-shadow: none;
+    }
+    
+    .btn, .badge {
+        border: 1px solid #ddd;
+    }
+}

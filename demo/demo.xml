@@ -1,16 +1,70 @@
 <odoo>
-    <!-- Crear canal de demostración -->
-    <record id="demo_slide_channel" model="slide.channel">
-        <field name="name">Canal Demo - Aprendizaje Adaptativo</field>
-        <field name="channel_type">documentation</field>
-        <field name="website_published">True</field>
-    </record>
+    <data noupdate="1">
 
-    <!-- Crear ruta de aprendizaje de demostración -->
-    <record id="demo_ruta_aprendizaje" model="slide.ruta.aprendizaje">
-        <field name="user_id" ref="base.user_admin"/>
-        <field name="channel_id" ref="demo_slide_channel"/>
-        <field name="nivel_dificultad">basico</field>
-        <field name="activa">True</field>
-    </record>
+        <!-- Datos de demostración para el módulo ARALS -->
+        
+        <!-- Canal/Curso de demostración -->
+        <record id="demo_course_python" model="slide.channel">
+            <field name="name">Curso Python Adaptativo - ARALS</field>
+            <field name="description">Curso de Python con sistema de recomendaciones adaptativo basado en ARALS</field>
+            <field name="website_published">True</field>
+            <field name="allow_comment">True</field>
+            <field name="promote_strategy">latest</field>
+            <field name="enroll">public</field>
+        </record>
+
+        <!-- Diapositivas de demostración con diferentes niveles -->
+        <record id="demo_slide_python_basics" model="slide.slide">
+            <field name="name">Introducción a Python - Variables y Tipos de Datos</field>
+            <field name="channel_id" ref="demo_course_python"/>
+            <field name="slide_type">presentation</field>
+            <field name="description">Conceptos básicos de Python: variables, tipos de datos y operadores</field>
+            <field name="website_published">True</field>
+            <field name="nivel_dificultad">basico</field>
+            <field name="sequence">1</field>
+        </record>
+
+        <record id="demo_slide_python_control" model="slide.slide">
+            <field name="name">Estructuras de Control en Python</field>
+            <field name="channel_id" ref="demo_course_python"/>
+            <field name="slide_type">presentation</field>
+            <field name="description">If, while, for y estructuras de control de flujo</field>
+            <field name="website_published">True</field>
+            <field name="nivel_dificultad">intermedio</field>
+            <field name="sequence">2</field>
+        </record>
+
+        <record id="demo_slide_python_oop" model="slide.slide">
+            <field name="name">Programación Orientada a Objetos</field>
+            <field name="channel_id" ref="demo_course_python"/>
+            <field name="slide_type">presentation</field>
+            <field name="description">Clases, objetos, herencia y polimorfismo en Python</field>
+            <field name="website_published">True</field>
+            <field name="nivel_dificultad">avanzado</field>
+            <field name="sequence">3</field>
+        </record>
+
+        <!-- Historial de progreso de demostración -->
+        <record id="demo_progreso_student_1" model="slide.historial.progreso">
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="slide_id" ref="demo_slide_python_basics"/>
+            <field name="channel_id" ref="demo_course_python"/>
+            <field name="tiempo_dedicado">45.5</field>
+            <field name="intentos_quiz">1</field>
+            <field name="puntuacion">85.0</field>
+            <field name="completado">True</field>
+            <field name="notas">Conceptos básicos bien comprendidos.</field>
+        </record>
+
+        <!-- Ruta de aprendizaje de demostración -->
+        <record id="demo_ruta_aprendizaje" model="slide.ruta.aprendizaje">
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="channel_id" ref="demo_course_python"/>
+            <field name="nivel_dificultad">intermedio</field>
+            <field name="activa">True</field>
+            <field name="descripcion">Ruta personalizada de demostración para el sistema ARALS.</field>
+            <field name="slide_ids" eval="[(6, 0, [ref('demo_slide_python_control'), ref('demo_slide_python_oop')])]"/>
+        </record>
+
+    </data>
 </odoo>

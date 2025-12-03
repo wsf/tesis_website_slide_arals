@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Vista Tree para Historial de Progreso -->
+        <record id="view_historial_progreso_tree" model="ir.ui.view">
+            <field name="name">slide.historial.progreso.tree</field>
+            <field name="model">slide.historial.progreso</field>
+            <field name="arch" type="xml">
+                <tree string="Historial de Progreso" create="false" edit="false">
+                    <field name="user_id"/>
+                    <field name="channel_id"/>
+                    <field name="slide_id"/>
+                    <field name="fecha_acceso"/>
+                    <field name="tiempo_dedicado"/>
+                    <field name="intentos_quiz"/>
+                    <field name="puntuacion"/>
+                    <field name="progreso_porcentaje" widget="progressbar"/>
+                    <field name="completado" widget="boolean_toggle"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Vista Form para Historial de Progreso -->
+        <record id="view_historial_progreso_form" model="ir.ui.view">
+            <field name="name">slide.historial.progreso.form</field>
+            <field name="model">slide.historial.progreso</field>
+            <field name="arch" type="xml">
+                <form string="Detalle de Progreso" create="false" edit="false">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="user_id" readonly="1"/>
+                            </h1>
+                            <h2>
+                                <field name="slide_id" readonly="1" attrs="{'invisible': [('slide_id', '=', False)]}"/>
+                                <field name="channel_id" readonly="1" attrs="{'invisible': [('channel_id', '=', False)]}"/>
+                            </h2>
+                        </div>
+                        <group>
+                            <group name="progreso_info" string="Información de Progreso">
+                                <field name="fecha_acceso"/>
+                                <field name="completado"/>
+                                <field name="progreso_porcentaje" widget="progressbar"/>
+                            </group>
+                            <group name="estadisticas" string="Estadísticas">
+                                <field name="tiempo_dedicado" widget="float_time"/>
+                                <field name="intentos_quiz"/>
+                                <field name="puntuacion"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Notas del Estudiante">
+                                <field name="notas" placeholder="Notas y comentarios del estudiante..."/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Vista Kanban para Historial de Progreso -->
+        <record id="view_historial_progreso_kanban" model="ir.ui.view">
+            <field name="name">slide.historial.progreso.kanban</field>
+            <field name="model">slide.historial.progreso</field>
+            <field name="arch" type="xml">
+                <kanban default_group_by="completado" class="o_kanban_small_column">
+                    <field name="user_id"/>
+                    <field name="slide_id"/>
+                    <field name="channel_id"/>
+                    <field name="progreso_porcentaje"/>
+                    <field name="puntuacion"/>
+                    <field name="tiempo_dedicado"/>
+                    <field name="completado"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_kanban_card oe_kanban_global_click">
+                                <div class="oe_kanban_content">
+                                    <div class="o_kanban_record_top">
+                                        <div class="o_kanban_record_headings">
+                                            <strong class="o_kanban_record_title">
+                                                <field name="user_id"/>
+                                            </strong>
+                                            <br/>
+                                            <span class="o_kanban_record_subtitle">
+                                                <field name="slide_id" t-if="record.slide_id.value"/>
+                                                <field name="channel_id" t-if="record.channel_id.value and !record.slide_id.value"/>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="o_kanban_record_body">
+                                        <div class="o_kanban_tags_section">
+                                            <span class="badge badge-pill badge-info">
+                                                Puntuación: <field name="puntuacion"/>%
+                                            </span>
+                                            <span class="badge badge-pill badge-secondary">
+                                                <field name="tiempo_dedicado"/> min
+                                            </span>
+                                        </div>
+                                        <div class="progress mt-2">
+                                            <div class="progress-bar" 
+                                                 t-att-style="'width: ' + record.progreso_porcentaje.value + '%'"
+                                                 t-att-title="record.progreso_porcentaje.value + '% completado'">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="o_kanban_record_bottom">
+                                        <div class="oe_kanban_bottom_left">
+                                            <span class="badge badge-success" t-if="record.completado.raw_value">
+                                                <i class="fa fa-check"/> Completado
+                                            </span>
+                                            <span class="badge badge-warning" t-if="!record.completado.raw_value">
+                                                <i class="fa fa-clock-o"/> En Progreso
+                                            </span>
+                                        </div>
+                                        <div class="oe_kanban_bottom_right">
+                                            <field name="fecha_acceso" widget="date"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- Vista Search para Historial de Progreso -->
+        <record id="view_historial_progreso_search" model="ir.ui.view">
+            <field name="name">slide.historial.progreso.search</field>
+            <field name="model">slide.historial.progreso</field>
+            <field name="arch" type="xml">
+                <search string="Buscar Historial de Progreso">
+                    <field name="user_id" string="Usuario"/>
+                    <field name="channel_id" string="Curso"/>
+                    <field name="slide_id" string="Diapositiva"/>
+                    <field name="notas" string="Notas"/>
+                    
+                    <separator/>
+                    <filter name="completados" string="Completados" domain="[('completado', '=', True)]"/>
+                    <filter name="en_progreso" string="En Progreso" domain="[('completado', '=', False)]"/>
+                    <separator/>
+                    <filter name="puntuacion_alta" string="Puntuación Alta (>70%)" domain="[('puntuacion', '>', 70)]"/>
+                    <filter name="puntuacion_media" string="Puntuación Media (40-70%)" domain="[('puntuacion', '>=', 40), ('puntuacion', '<=', 70)]"/>
+                    <filter name="puntuacion_baja" string="Puntuación Baja (<40%)" domain="[('puntuacion', '<', 40)]"/>
+                    <separator/>
+                    <filter name="hoy" string="Hoy" domain="[('fecha_acceso', '>=', context_today().strftime('%Y-%m-%d'))]"/>
+                    <filter name="esta_semana" string="Esta Semana" domain="[('fecha_acceso', '>=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                    <filter name="este_mes" string="Este Mes" domain="[('fecha_acceso', '>=', (context_today().replace(day=1)).strftime('%Y-%m-%d'))]"/>
+                    
+                    <group expand="0" string="Agrupar Por">
+                        <filter string="Usuario" name="group_user" context="{'group_by': 'user_id'}"/>
+                        <filter string="Curso" name="group_channel" context="{'group_by': 'channel_id'}"/>
+                        <filter string="Completado" name="group_completado" context="{'group_by': 'completado'}"/>
+                        <filter string="Fecha de Acceso" name="group_fecha" context="{'group_by': 'fecha_acceso:month'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Vista Pivot para Análisis -->
+        <record id="view_historial_progreso_pivot" model="ir.ui.view">
+            <field name="name">slide.historial.progreso.pivot</field>
+            <field name="model">slide.historial.progreso</field>
+            <field name="arch" type="xml">
+                <pivot string="Análisis de Progreso">
+                    <field name="user_id" type="row"/>
+                    <field name="channel_id" type="row"/>
+                    <field name="completado" type="col"/>
+                    <field name="tiempo_dedicado" type="measure"/>
+                    <field name="puntuacion" type="measure"/>
+                    <field name="intentos_quiz" type="measure"/>
+                </pivot>
+            </field>
+        </record>
+
+        <!-- Vista Graph para Dashboard -->
+        <record id="view_historial_progreso_graph" model="ir.ui.view">
+            <field name="name">slide.historial.progreso.graph</field>
+            <field name="model">slide.historial.progreso</field>
+            <field name="arch" type="xml">
+                <graph string="Estadísticas de Progreso" type="bar">
+                    <field name="channel_id"/>
+                    <field name="progreso_porcentaje" type="measure"/>
+                    <field name="tiempo_dedicado" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <!-- Acción de ventana -->
+        <record id="action_historial_progreso" model="ir.actions.act_window">
+            <field name="name">Historial de Progreso</field>
+            <field name="res_model">slide.historial.progreso</field>
+            <field name="view_mode">kanban,tree,form,pivot,graph</field>
+            <field name="context">{
+                'search_default_esta_semana': 1,
+                'search_default_group_user': 1,
+            }</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No hay registros de progreso todavía
+                </p>
+                <p>
+                    Los registros de progreso se crean automáticamente cuando los estudiantes 
+                    interactúan con el contenido de los cursos.
+                </p>
+            </field>
+        </record>
+
+        <!-- Menú -->
+        <menuitem 
+            id="menu_historial_progreso"
+            name="Historial de Progreso"
+            parent="website_slides.website_slides_menu_courses"
+            action="action_historial_progreso"
+            sequence="20"/>
+
+    </data>
+</odoo>

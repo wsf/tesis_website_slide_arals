@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- =================== DASHBOARDS Y REPORTES =================== -->
+
+        <!-- Dashboard Principal ARALS -->
+        <record id="view_arals_dashboard" model="ir.ui.view">
+            <field name="name">arals.dashboard</field>
+            <field name="model">slide.channel</field>
+            <field name="arch" type="xml">
+                <form string="Dashboard ARALS" create="false" edit="false">
+                    <sheet>
+                        <div class="o_dashboard_arals">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <h1>
+                                        <span class="fa fa-graduation-cap"/> Dashboard ARALS
+                                        <small class="text-muted">Sistema Adaptativo de Recomendación para Aprendizaje</small>
+                                    </h1>
+                                </div>
+                            </div>
+                            
+                            <!-- KPIs Principales -->
+                            <div class="row o_dashboard_section">
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="card border-primary">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center">
+                                                <div class="flex-grow-1">
+                                                    <h2 class="card-title text-primary">234</h2>
+                                                    <p class="card-text">Estudiantes Activos</p>
+                                                </div>
+                                                <div class="text-primary">
+                                                    <i class="fa fa-users fa-2x"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="card border-success">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center">
+                                                <div class="flex-grow-1">
+                                                    <h2 class="card-title text-success">87%</h2>
+                                                    <p class="card-text">Tasa de Finalización</p>
+                                                </div>
+                                                <div class="text-success">
+                                                    <i class="fa fa-check-circle fa-2x"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="card border-info">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center">
+                                                <div class="flex-grow-1">
+                                                    <h2 class="card-title text-info">156</h2>
+                                                    <p class="card-text">Rutas Activas</p>
+                                                </div>
+                                                <div class="text-info">
+                                                    <i class="fa fa-road fa-2x"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="card border-warning">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center">
+                                                <div class="flex-grow-1">
+                                                    <h2 class="card-title text-warning">42min</h2>
+                                                    <p class="card-text">Tiempo Promedio</p>
+                                                </div>
+                                                <div class="text-warning">
+                                                    <i class="fa fa-clock-o fa-2x"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Acciones Rápidas -->
+                            <div class="row o_dashboard_section">
+                                <div class="col-lg-12">
+                                    <h3>Acciones Rápidas</h3>
+                                    <div class="btn-toolbar" role="toolbar">
+                                        <div class="btn-group mr-2" role="group">
+                                            <button type="object" name="action_view_historial_progreso" 
+                                                    class="btn btn-primary">
+                                                <i class="fa fa-chart-line"/> Ver Progreso
+                                            </button>
+                                            <button type="object" name="action_view_rutas_aprendizaje" 
+                                                    class="btn btn-success">
+                                                <i class="fa fa-road"/> Gestionar Rutas
+                                            </button>
+                                        </div>
+                                        <div class="btn-group mr-2" role="group">
+                                            <button type="object" name="action_generate_recommendations" 
+                                                    class="btn btn-info">
+                                                <i class="fa fa-lightbulb-o"/> Generar Recomendaciones
+                                            </button>
+                                            <button type="object" name="action_analytics_report" 
+                                                    class="btn btn-warning">
+                                                <i class="fa fa-bar-chart"/> Reportes
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Gráficos y Estadísticas -->
+                            <div class="row o_dashboard_section">
+                                <div class="col-lg-8">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5>Progreso por Curso</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="chart-container">
+                                                <!-- Aquí se insertará el gráfico dinámico -->
+                                                <canvas id="progressChart" width="400" height="200"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5>Distribución por Nivel</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="chart-container">
+                                                <canvas id="levelChart" width="200" height="200"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- =================== REPORTES Y ANÁLISIS =================== -->
+
+        <!-- Reporte de Eficacia del Sistema -->
+        <record id="view_arals_effectiveness_report" model="ir.ui.view">
+            <field name="name">arals.effectiveness.report</field>
+            <field name="model">slide.historial.progreso</field>
+            <field name="arch" type="xml">
+                <pivot string="Reporte de Eficacia ARALS">
+                    <field name="channel_id" type="row"/>
+                    <field name="user_id" type="row"/>
+                    <field name="completado" type="col"/>
+                    <field name="puntuacion" type="measure"/>
+                    <field name="tiempo_dedicado" type="measure"/>
+                    <field name="progreso_porcentaje" type="measure"/>
+                </pivot>
+            </field>
+        </record>
+
+        <!-- =================== VISTAS DE CONFIGURACIÓN =================== -->
+
+        <!-- Configuración de Parámetros ARALS -->
+        <record id="view_arals_config_form" model="ir.ui.view">
+            <field name="name">arals.config.settings</field>
+            <field name="model">res.config.settings</field>
+            <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[hasclass('settings')]" position="inside">
+                    <div class="app_settings_block" data-string="ARALS" string="ARALS" data-key="arals">
+                        <h2>Sistema Adaptativo de Recomendación para Aprendizaje (ARALS)</h2>
+                        
+                        <div class="row mt16 o_settings_container">
+                            <div class="col-12 col-lg-6 o_setting_box">
+                                <div class="o_setting_left_pane">
+                                    <field name="arals_enabled" widget="boolean_toggle"/>
+                                </div>
+                                <div class="o_setting_right_pane">
+                                    <label for="arals_enabled"/>
+                                    <div class="text-muted">
+                                        Activa el sistema de recomendaciones adaptativo
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt16 o_settings_container" attrs="{'invisible': [('arals_enabled', '=', False)]}">
+                            <div class="col-12 col-lg-6 o_setting_box">
+                                <div class="o_setting_left_pane"/>
+                                <div class="o_setting_right_pane">
+                                    <label for="arals_recommendation_threshold" class="o_form_label">Umbral de Recomendación</label>
+                                    <field name="arals_recommendation_threshold" class="o_form_field"/>
+                                    <div class="text-muted">
+                                        Puntuación mínima para generar recomendaciones (0-100)
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-6 o_setting_box">
+                                <div class="o_setting_left_pane"/>
+                                <div class="o_setting_right_pane">
+                                    <label for="arals_max_recommendations" class="o_form_label">Máx. Recomendaciones</label>
+                                    <field name="arals_max_recommendations" class="o_form_field"/>
+                                    <div class="text-muted">
+                                        Número máximo de diapositivas recomendadas por ruta
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt16 o_settings_container" attrs="{'invisible': [('arals_enabled', '=', False)]}">
+                            <div class="col-12 col-lg-6 o_setting_box">
+                                <div class="o_setting_left_pane">
+                                    <field name="arals_auto_update_routes" widget="boolean_toggle"/>
+                                </div>
+                                <div class="o_setting_right_pane">
+                                    <label for="arals_auto_update_routes"/>
+                                    <div class="text-muted">
+                                        Actualiza automáticamente las rutas basándose en el progreso
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-6 o_setting_box">
+                                <div class="o_setting_left_pane">
+                                    <field name="arals_enable_analytics" widget="boolean_toggle"/>
+                                </div>
+                                <div class="o_setting_right_pane">
+                                    <label for="arals_enable_analytics"/>
+                                    <div class="text-muted">
+                                        Habilita el análisis avanzado de datos de aprendizaje
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- =================== WIZARD DE CONFIGURACIÓN =================== -->
+
+        <!-- Wizard para configuración inicial -->
+        <record id="view_arals_setup_wizard" model="ir.ui.view">
+            <field name="name">arals.setup.wizard</field>
+            <field name="model">slide.channel</field>
+            <field name="arch" type="xml">
+                <form string="Configuración ARALS">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <span class="fa fa-magic"/> Configurar ARALS
+                            </h1>
+                            <h2>Sistema Adaptativo de Recomendación para Aprendizaje</h2>
+                        </div>
+
+                        <group>
+                            <group string="Parámetros Básicos">
+                                <field name="arals_difficulty_weight" widget="percentage"/>
+                                <field name="arals_progress_threshold" widget="percentage"/>
+                                <field name="arals_recommendation_count"/>
+                            </group>
+                            <group string="Configuración Avanzada">
+                                <field name="arals_enable_machine_learning"/>
+                                <field name="arals_update_frequency"/>
+                                <field name="arals_analytics_level"/>
+                            </group>
+                        </group>
+
+                        <div class="alert alert-info" role="alert">
+                            <strong>¿Qué es ARALS?</strong><br/>
+                            ARALS (Adaptive Recommendation for Learning System) es un sistema que personaliza 
+                            el contenido educativo basándose en el perfil, progreso y preferencias de cada estudiante, 
+                            optimizando la experiencia de aprendizaje mediante algoritmos adaptativos.
+                        </div>
+
+                        <footer>
+                            <button name="action_configure_arals" string="Configurar" type="object" class="btn-primary"/>
+                            <button special="cancel" string="Cancelar" class="btn-secondary"/>
+                        </footer>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- =================== ACCIONES =================== -->
+
+        <!-- Acción Dashboard Principal -->
+        <record id="action_arals_dashboard" model="ir.actions.act_window">
+            <field name="name">Dashboard ARALS</field>
+            <field name="res_model">slide.channel</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_arals_dashboard"/>
+            <field name="target">fullscreen</field>
+            <field name="context">{}</field>
+        </record>
+
+        <!-- Acción Reporte de Eficacia -->
+        <record id="action_arals_effectiveness" model="ir.actions.act_window">
+            <field name="name">Reporte de Eficacia ARALS</field>
+            <field name="res_model">slide.historial.progreso</field>
+            <field name="view_mode">pivot,graph</field>
+            <field name="view_id" ref="view_arals_effectiveness_report"/>
+            <field name="context">{
+                'search_default_este_mes': 1,
+                'group_by': ['channel_id', 'completado']
+            }</field>
+        </record>
+
+        <!-- Acción Wizard Setup -->
+        <record id="action_arals_setup_wizard" model="ir.actions.act_window">
+            <field name="name">Configurar ARALS</field>
+            <field name="res_model">slide.channel</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_arals_setup_wizard"/>
+            <field name="target">new</field>
+        </record>
+
+        <!-- =================== MENÚS =================== -->
+
+        <!-- Menú Principal ARALS -->
+        <menuitem 
+            id="menu_arals_main"
+            name="ARALS"
+            web_icon="tesis_website_slide_arals,static/description/icon.png"
+            sequence="5"/>
+
+        <!-- Sub-menús -->
+        <menuitem 
+            id="menu_arals_dashboard"
+            name="Dashboard"
+            parent="menu_arals_main"
+            action="action_arals_dashboard"
+            sequence="10"/>
+
+        <menuitem 
+            id="menu_arals_analytics"
+            name="Análisis"
+            parent="menu_arals_main"
+            sequence="20"/>
+
+        <menuitem 
+            id="menu_arals_effectiveness"
+            name="Reporte de Eficacia"
+            parent="menu_arals_analytics"
+            action="action_arals_effectiveness"
+            sequence="10"/>
+
+        <menuitem 
+            id="menu_arals_config"
+            name="Configuración"
+            parent="menu_arals_main"
+            sequence="90"/>
+
+        <menuitem 
+            id="menu_arals_setup"
+            name="Configurar Sistema"
+            parent="menu_arals_config"
+            action="action_arals_setup_wizard"
+            sequence="10"/>
+
+    </data>
+</odoo>
