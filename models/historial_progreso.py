@@ -80,3 +80,26 @@ class HistorialProgreso(models.Model):
             name = f"{record.user_id.name} - {record.slide_id.name if record.slide_id else record.channel_id.name}"
             result.append((record.id, name))
         return result
+
+    @api.model
+    def create(self, vals):
+        result = super(HistorialProgreso, self).create(vals)
+        self._update_rutas_progreso(result)
+        return result
+
+    def write(self, vals):
+        result = super(HistorialProgreso, self).write(vals)
+        if 'completado' in vals or 'puntuacion' in vals:
+            self._update_rutas_progreso(self)
+        return result
+
+    def _update_rutas_progreso(self, records):
+        """Actualiza el progreso de las rutas afectadas"""
+        for record in records:
+            if record.user_id and record.slide_id:
+                rutas = self.env['slide.ruta.aprendizaje'].search([
+                    ('user_id', '=', record.user_id.id),
+                    ('slide_ids', 'in', record.slide_id.id)
+                ])
+                # Forzar recalculo del campo computado
+                rutas._compute_progreso_ruta()

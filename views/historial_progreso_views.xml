@@ -7,7 +7,7 @@
             <field name="name">slide.historial.progreso.tree</field>
             <field name="model">slide.historial.progreso</field>
             <field name="arch" type="xml">
-                <tree string="Historial de Progreso" create="false" edit="false">
+                <list string="Historial de Progreso" create="false" edit="false">
                     <field name="user_id"/>
                     <field name="channel_id"/>
                     <field name="slide_id"/>
@@ -17,7 +17,7 @@
                     <field name="puntuacion"/>
                     <field name="progreso_porcentaje" widget="progressbar"/>
                     <field name="completado" widget="boolean_toggle"/>
-                </tree>
+                </list>
             </field>
         </record>
 
@@ -33,8 +33,8 @@
                                 <field name="user_id" readonly="1"/>
                             </h1>
                             <h2>
-                                <field name="slide_id" readonly="1" attrs="{'invisible': [('slide_id', '=', False)]}"/>
-                                <field name="channel_id" readonly="1" attrs="{'invisible': [('channel_id', '=', False)]}"/>
+                                <field name="slide_id" readonly="1" invisible="slide_id == False"/>
+                                <field name="channel_id" readonly="1" invisible="channel_id == False"/>
                             </h2>
                         </div>
                         <group>
@@ -140,9 +140,9 @@
                     <filter name="completados" string="Completados" domain="[('completado', '=', True)]"/>
                     <filter name="en_progreso" string="En Progreso" domain="[('completado', '=', False)]"/>
                     <separator/>
-                    <filter name="puntuacion_alta" string="Puntuación Alta (>70%)" domain="[('puntuacion', '>', 70)]"/>
-                    <filter name="puntuacion_media" string="Puntuación Media (40-70%)" domain="[('puntuacion', '>=', 40), ('puntuacion', '<=', 70)]"/>
-                    <filter name="puntuacion_baja" string="Puntuación Baja (<40%)" domain="[('puntuacion', '<', 40)]"/>
+                    <filter name="puntuacion_alta" string="Puntuación Alta (&gt;70%)" domain="[('puntuacion', '&gt;', 70)]"/>
+                    <filter name="puntuacion_media" string="Puntuación Media (40-70%)" domain="[('puntuacion', '&gt;=', 40), ('puntuacion', '&lt;=', 70)]"/>
+                    <filter name="puntuacion_baja" string="Puntuación Baja (&lt;40%)" domain="[('puntuacion', '&lt;', 40)]"/>
                     <separator/>
                     <filter name="hoy" string="Hoy" domain="[('fecha_acceso', '>=', context_today().strftime('%Y-%m-%d'))]"/>
                     <filter name="esta_semana" string="Esta Semana" domain="[('fecha_acceso', '>=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
@@ -191,7 +191,7 @@
         <record id="action_historial_progreso" model="ir.actions.act_window">
             <field name="name">Historial de Progreso</field>
             <field name="res_model">slide.historial.progreso</field>
-            <field name="view_mode">kanban,tree,form,pivot,graph</field>
+            <field name="view_mode">kanban,list,form,pivot,graph</field>
             <field name="context">{
                 'search_default_esta_semana': 1,
                 'search_default_group_user': 1,

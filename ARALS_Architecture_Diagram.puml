@@ -1,0 +1,275 @@
+@startuml ARALS_Architecture_Complete
+!theme toy
+!define LIGHTYELLOW #FFFFCC
+!define LIGHTGREEN #CCFFCC
+!define LIGHTBLUE #CCE5FF
+!define LIGHTPINK #FFCCDD
+!define LIGHTORANGE #FFE5CC
+
+title ARALS (Adaptive Recommendation for Learning System) - Arquitectura Completa
+
+' =================== CAPA DE PRESENTACIÓN ===================
+package "Frontend Layer (Web Interface)" as frontend #LIGHTBLUE {
+    package "QWeb Templates" as qweb {
+        component [arals_base_template] as base_template #FFFFCC
+        component [arals_progress_widget] as progress_widget #FFFFCC
+        component [arals_recommendations_panel] as recommendations_panel #FFFFCC
+        component [arals_learning_path] as learning_path #FFFFCC
+        component [arals_teacher_control_panel] as teacher_panel #FFFFCC
+        component [arals_student_dashboard] as student_dashboard #FFFFCC
+        component [arals_adaptive_notifications] as notifications #FFFFCC
+    }
+    
+    package "JavaScript Components" as js {
+        component [AralsEngine Widget] as arals_engine #E5F3FF
+        component [RecommendationsPanel Widget] as rec_panel_js #E5F3FF
+        component [LearningPathWidget] as path_widget_js #E5F3FF
+        component [ProgressTracker] as progress_tracker #E5F3FF
+        component [ARALS Utils] as arals_utils #E5F3FF
+    }
+    
+    package "CSS Styling" as css {
+        component [arals_frontend.css] as frontend_css #F0F0F0
+        note right of frontend_css
+            • Responsive design
+            • CSS Variables
+            • Card components
+            • Timeline styles
+            • Progress indicators
+        end note
+    }
+}
+
+' =================== CAPA DE VISTAS BACKEND ===================
+package "Backend Views Layer" as backend_views #LIGHTGREEN {
+    package "Administrative Views" as admin_views {
+        component [historial_progreso_views.xml] as historial_views #CCFFCC
+        component [ruta_aprendizaje_views.xml] as ruta_views #CCFFCC
+        component [arals_dashboard_views.xml] as dashboard_views #CCFFCC
+        component [slide_views.xml] as slide_views #CCFFCC
+    }
+    
+    package "View Types" as view_types {
+        component [List Views] as list_views #E8F5E8
+        component [Form Views] as form_views #E8F5E8
+        component [Kanban Views] as kanban_views #E8F5E8
+        component [Calendar Views] as calendar_views #E8F5E8
+        component [Pivot Views] as pivot_views #E8F5E8
+        component [Graph Views] as graph_views #E8F5E8
+        component [Search Views] as search_views #E8F5E8
+    }
+}
+
+' =================== CAPA LÓGICA DE NEGOCIO ===================
+package "Business Logic Layer (Python Models)" as business #LIGHTYELLOW {
+    package "Core ARALS Models" as core_models {
+        class HistorialProgreso {
+            +user_id: Many2one(res.users)
+            +slide_id: Many2one(slide.slide)
+            +channel_id: Many2one(slide.channel)
+            +tiempo_dedicado: Float
+            +intentos_quiz: Integer
+            +puntuacion: Float
+            +fecha_acceso: Datetime
+            +completado: Boolean
+            +notas: Text
+            +progreso_porcentaje: Float (computed)
+            --
+            +_compute_progreso_porcentaje()
+            +_update_rutas_progreso()
+            +name_get()
+        }
+        
+        class RutaAprendizaje {
+            +name: Char (computed)
+            +user_id: Many2one(res.users)
+            +channel_id: Many2one(slide.channel)
+            +slide_ids: Many2many(slide.slide)
+            +nivel_dificultad: Selection
+            +fecha_creacion: Datetime
+            +fecha_actualizacion: Datetime
+            +activa: Boolean
+            +descripcion: Text
+            +total_slides: Integer (computed)
+            +progreso_ruta: Float (computed, stored)
+            --
+            +_compute_name()
+            +_compute_total_slides()
+            +_compute_progreso_ruta()
+            +actualizar_recomendaciones()
+            +action_view_progreso()
+            +action_view_slides()
+        }
+    }
+    
+    package "Extended Odoo Models" as extended_models {
+        class SlideSlide {
+            +nivel_dificultad: Selection
+            --
+            Extends: slide.slide
+        }
+        
+        class SlideChannel {
+            --
+            Base: slide.channel
+            Extended for dashboard integration
+        }
+        
+        class ResUsers {
+            --
+            Base: res.users
+            Related to learning paths
+        }
+    }
+}
+
+' =================== MOTOR DE RECOMENDACIONES ===================
+package "Recommendation Engine" as engine #LIGHTPINK {
+    component [RecommendationEngine] as rec_engine #FFDDDD
+    note right of rec_engine
+        **Algoritmo Adaptativo:**
+        • Análisis de progreso individual
+        • Evaluación de dificultad
+        • Patrones de aprendizaje
+        • Recomendaciones personalizadas
+        • Machine Learning (futuro)
+    end note
+    
+    package "Analytics & Intelligence" as analytics {
+        component [Progress Analytics] as progress_analytics #FFE8E8
+        component [Learning Pattern Analysis] as pattern_analysis #FFE8E8
+        component [Difficulty Assessment] as difficulty_assessment #FFE8E8
+        component [Recommendation Scoring] as rec_scoring #FFE8E8
+    }
+}
+
+' =================== CAPA DE DATOS ===================
+package "Data Layer (PostgreSQL)" as data #LIGHTORANGE {
+    database "slide_historial_progreso" as hist_table {
+        id (PK)
+        user_id (FK)
+        slide_id (FK)
+        channel_id (FK)
+        tiempo_dedicado
+        intentos_quiz
+        puntuacion
+        fecha_acceso
+        completado
+        notas
+        progreso_porcentaje
+    }
+    
+    database "slide_ruta_aprendizaje" as ruta_table {
+        id (PK)
+        name
+        user_id (FK)
+        channel_id (FK)
+        nivel_dificultad
+        fecha_creacion
+        fecha_actualizacion
+        activa
+        descripcion
+        total_slides
+        progreso_ruta
+    }
+    
+    database "ruta_aprendizaje_slide_rel" as rel_table {
+        ruta_id (FK)
+        slide_id (FK)
+    }
+    
+    database "slide_slide (Extended)" as slide_table {
+        id (PK)
+        name
+        channel_id (FK)
+        nivel_dificultad [NEW]
+        ... (otros campos base)
+    }
+}
+
+' =================== CAPA DE CONFIGURACIÓN ===================
+package "Configuration Layer" as config #F5F5F5 {
+    component [__manifest__.py] as manifest #EFEFEF
+    component [ir.model.access.csv] as security #EFEFEF
+    component [demo.xml] as demo_data #EFEFEF
+    component [Assets Definition] as assets #EFEFEF
+    
+    note right of manifest
+        **Módulo Configuration:**
+        • Dependencias: website_slides
+        • Assets: frontend/backend
+        • Data files order
+        • Security definitions
+    end note
+}
+
+' =================== RELACIONES PRINCIPALES ===================
+
+' Frontend to Backend
+frontend --> backend_views : "Renders views"
+qweb --> js : "Template integration"
+js --> business : "AJAX calls"
+
+' Business Logic Relations
+HistorialProgreso ||--o{ RutaAprendizaje : "Updates progress"
+RutaAprendizaje }o--|| SlideSlide : "Contains slides"
+HistorialProgreso }o--|| SlideSlide : "Tracks slide progress"
+HistorialProgreso }o--|| ResUsers : "User progress"
+RutaAprendizaje }o--|| ResUsers : "User learning paths"
+SlideSlide }o--|| SlideChannel : "Channel slides"
+
+' Views to Models
+backend_views --> business : "CRUD operations"
+admin_views --> core_models : "Data management"
+view_types --> extended_models : "Display data"
+
+' Data Layer
+business --> data : "ORM operations"
+hist_table ||--o{ rel_table : "Many2many relation"
+ruta_table ||--o{ rel_table : "Many2many relation"
+
+' Recommendation Engine
+rec_engine --> business : "Analyzes data"
+analytics --> data : "Data mining"
+rec_engine --> RutaAprendizaje : "Updates recommendations"
+
+' Configuration
+config --> frontend : "Defines assets"
+config --> backend_views : "Declares views"
+config --> business : "Model registration"
+config --> data : "Security rules"
+
+' =================== NOTAS DE ARQUITECTURA ===================
+note top of frontend
+    **Decisiones de Diseño Frontend:**
+    • QWeb templates para renderizado server-side
+    • JavaScript widgets para interactividad
+    • CSS variables para consistencia visual
+    • Responsive design mobile-first
+end note
+
+note top of business
+    **Decisiones de Diseño Backend:**
+    • Computed fields con store=True para performance
+    • Hooks en create/write para sincronización
+    • Validations con @api.constrains
+    • Relaciones Many2many para flexibilidad
+end note
+
+note top of engine
+    **Arquitectura Adaptativa:**
+    • Engine pluggable para algoritmos
+    • Analytics separado para escalabilidad
+    • Preparado para ML/AI futuro
+    • Scoring system personalizable
+end note
+
+note top of data
+    **Decisiones de Base de Datos:**
+    • Índices en campos de búsqueda frecuente
+    • Campos computados almacenados
+    • Relaciones optimizadas para consultas
+    • Estructura normalizada
+end note
+
+@enduml

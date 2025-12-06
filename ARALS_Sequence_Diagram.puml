@@ -1,0 +1,250 @@
+@startuml ARALS_Sequence_Diagram
+!theme toy
+title ARALS - Caso de Uso: Estudiante Completa una Lección y Recibe Recomendaciones Adaptativas
+
+actor "Estudiante\n(María)" as Student
+participant "Frontend\n(QWeb + JS)" as Frontend
+participant "Odoo Web\nController" as WebController
+participant "slide.slide\nModel" as SlideModel
+participant "slide.historial.progreso\nModel" as HistorialModel
+participant "slide.ruta.aprendizaje\nModel" as RutaModel
+participant "Recommendation\nEngine" as RecommendationEngine
+participant "PostgreSQL\nDatabase" as Database
+
+== Fase 1: Acceso al Curso ==
+
+Student -> Frontend: Accede al curso\n"Introducción a Python"
+activate Frontend
+
+Frontend -> WebController: GET /slides/slide/python-intro/1
+activate WebController
+
+WebController -> SlideModel: browse(slide_id=1)
+activate SlideModel
+
+SlideModel -> Database: SELECT * FROM slide_slide WHERE id=1
+activate Database
+Database --> SlideModel: Datos de la diapositiva
+deactivate Database
+
+SlideModel --> WebController: Slide object with content
+deactivate SlideModel
+
+WebController --> Frontend: Render slide template with content
+deactivate WebController
+
+Frontend --> Student: Muestra diapositiva\n+ widget de progreso ARALS
+deactivate Frontend
+
+note right of Student
+  María ve la lección "Variables en Python"
+  con nivel de dificultad: Básico
+  Progress widget muestra: 45% completado
+end note
+
+== Fase 2: Interacción con la Lección ==
+
+Student -> Frontend: Lee contenido\n(tracking tiempo)
+activate Frontend
+
+Frontend -> Frontend: AralsEngine.startProgressTracking()
+note right of Frontend: JavaScript inicia cronómetro
+
+Student -> Frontend: Realiza quiz de la lección
+Frontend -> WebController: POST /slides/quiz/submit\n{answers: [...], slide_id: 1}
+activate WebController
+
+WebController -> SlideModel: process_quiz_answers(answers, user_id)
+activate SlideModel
+
+SlideModel -> SlideModel: Calcula puntuación: 85/100
+SlideModel -> Database: UPDATE quiz results
+activate Database
+Database --> SlideModel: Quiz updated
+deactivate Database
+
+SlideModel --> WebController: quiz_result = {'score': 85, 'passed': True}
+deactivate SlideModel
+
+WebController --> Frontend: JSON response with quiz results
+deactivate WebController
+
+Frontend --> Student: Muestra resultado del quiz\n✓ 85% - ¡Excelente!
+deactivate Frontend
+
+== Fase 3: Registro de Progreso ==
+
+Student -> Frontend: Marca lección como completada
+activate Frontend
+
+Frontend -> WebController: POST /arals/api/complete-slide\n{slide_id: 1, time_spent: 12.5}
+activate WebController
+
+WebController -> HistorialModel: create_or_update_progress()
+activate HistorialModel
+
+HistorialModel -> HistorialModel: Calcula datos de progreso:
+note right of HistorialModel
+  • tiempo_dedicado = 12.5 minutos
+  • puntuacion = 85.0
+  • completado = True
+  • fecha_acceso = now()
+  • progreso_porcentaje = 100.0
+end note
+
+HistorialModel -> Database: INSERT INTO slide_historial_progreso
+activate Database
+Database --> HistorialModel: Progress record created (ID: 156)
+deactivate Database
+
+HistorialModel -> HistorialModel: _update_rutas_progreso()
+note right of HistorialModel: Hook automático activa sincronización
+
+HistorialModel -> RutaModel: search([('user_id', '=', maria_id), ('slide_ids', 'in', [1])])
+activate RutaModel
+
+RutaModel -> Database: SELECT rutas WHERE user matches
+activate Database
+Database --> RutaModel: Ruta "Python Básico - María" (ID: 23)
+deactivate Database
+
+RutaModel -> RutaModel: _compute_progreso_ruta()
+note right of RutaModel
+  Recalcula progreso de la ruta:
+  • Slides completados: 4/8
+  • Progreso total: 50%
+end note
+
+RutaModel -> Database: UPDATE slide_ruta_aprendizaje SET progreso_ruta=50
+activate Database
+Database --> RutaModel: Ruta actualizada
+deactivate Database
+
+RutaModel --> HistorialModel: Ruta sincronizada
+deactivate RutaModel
+
+HistorialModel --> WebController: Progress registered successfully
+deactivate HistorialModel
+
+== Fase 4: Motor de Recomendaciones Adaptativo ==
+
+WebController -> RecommendationEngine: analyze_and_recommend(user_id, channel_id)
+activate RecommendationEngine
+
+RecommendationEngine -> Database: Analiza historial completo del usuario
+activate Database
+note right of Database
+  Query complejo:
+  • Rendimiento en quizzes
+  • Tiempo promedio por slide
+  • Nivel de dificultad preferido
+  • Patrones de abandono
+end note
+
+Database --> RecommendationEngine: User learning profile data
+deactivate Database
+
+RecommendationEngine -> RecommendationEngine: Algoritmo adaptativo:
+note right of RecommendationEngine
+  **Análisis de María:**
+  • Fuerte en conceptos básicos (85% promedio)
+  • Prefiere lecciones de 10-15 min
+  • Mejor rendimiento en la mañana
+  • Listo para contenido intermedio
+  
+  **Recomendación:** Saltar lecciones repetitivas,
+  acelerar a nivel intermedio
+end note
+
+RecommendationEngine -> Database: Busca slides candidatos nivel "intermedio"
+activate Database
+Database --> RecommendationEngine: Lista de slides recomendados
+deactivate Database
+
+RecommendationEngine -> RutaModel: actualizar_recomendaciones()
+activate RutaModel
+
+RutaModel -> Database: UPDATE Many2many relation con nuevas slides
+activate Database
+Database --> RutaModel: Ruta actualizada con recomendaciones
+deactivate Database
+
+RutaModel --> RecommendationEngine: Ruta personalizada generada
+deactivate RutaModel
+
+RecommendationEngine --> WebController: Recomendaciones personalizadas listas
+deactivate RecommendationEngine
+
+== Fase 5: Entrega de Experiencia Personalizada ==
+
+WebController --> Frontend: JSON response with updated progress + recommendations
+deactivate WebController
+
+Frontend -> Frontend: AralsEngine.updateProgressWidgets()
+Frontend -> Frontend: RecommendationsPanel.refresh()
+
+Frontend --> Student: Actualiza UI con:
+activate Frontend
+note right of Frontend
+  **Progress Widget:**
+  ✓ Lección completada: +100 XP
+  📈 Progreso del curso: 50% → 62%
+  ⚡ Racha de completitud: 4 días
+  
+  **Recomendaciones Adaptativas:**
+  🎯 "Funciones Avanzadas" (Recomendado)
+  🎯 "List Comprehensions" (Nuevo)
+  ⏭️ Saltar: "Variables Básicas II" (Repetitivo)
+end note
+
+deactivate Frontend
+
+Student -> Frontend: Hace clic en "Funciones Avanzadas"
+activate Frontend
+
+Frontend -> Frontend: Tracking de recomendación seleccionada
+Frontend -> WebController: POST /arals/api/track-recommendation
+activate WebController
+
+WebController -> Database: LOG recommendation click para analytics
+activate Database
+Database --> WebController: Tracked successfully
+deactivate Database
+deactivate WebController
+
+Frontend -> WebController: GET /slides/slide/funciones-avanzadas/5
+activate WebController
+
+WebController -> SlideModel: browse(slide_id=5)
+activate SlideModel
+SlideModel -> Database: SELECT slide con nivel_dificultad='intermedio'
+activate Database
+Database --> SlideModel: Advanced slide data
+deactivate Database
+SlideModel --> WebController: Slide avanzado cargado
+deactivate SlideModel
+
+WebController --> Frontend: Render nueva lección personalizada
+deactivate WebController
+
+Frontend --> Student: Muestra siguiente lección adaptada\n🎯 Nivel ajustado automáticamente
+deactivate Frontend
+
+== Fase 6: Analytics y Retroalimentación Continua ==
+
+note over Database
+  **Sistema aprende continuamente:**
+  • Patrones de María → Mejora recomendaciones futuras
+  • Éxito de recomendación → Refina algoritmo
+  • Datos agregados → Analytics para profesores
+end note
+
+note over Student
+  **María experimenta aprendizaje adaptativo:**
+  • Contenido personalizado a su ritmo
+  • No pierde tiempo en material repetitivo
+  • Desafío apropiado para su nivel
+  • Motivación mantenida con progreso visible
+end note
+
+@enduml

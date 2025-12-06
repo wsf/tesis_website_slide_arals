@@ -60,7 +60,8 @@ class RutaAprendizaje(models.Model):
     )
     progreso_ruta = fields.Float(
         'Progreso de la Ruta (%)',
-        compute='_compute_progreso_ruta'
+        compute='_compute_progreso_ruta',
+        store=True
     )
 
     @api.depends('user_id', 'channel_id')
@@ -73,6 +74,7 @@ class RutaAprendizaje(models.Model):
         for record in self:
             record.total_slides = len(record.slide_ids)
 
+    @api.depends('slide_ids', 'user_id')
     def _compute_progreso_ruta(self):
         for record in self:
             if not record.slide_ids:
@@ -112,3 +114,57 @@ class RutaAprendizaje(models.Model):
             self.write({'slide_ids': [(6, 0, slide_ids)]})
 
         return True
+
+    def action_view_progreso(self):
+        """Abre una vista con el progreso detallado de esta ruta"""
+        self.ensure_one()
+        
+        domain = [
+            ('user_id', '=', self.user_id.id),
+            ('slide_id', 'in', self.slide_ids.ids)
+        ]
+        
+        return {
+            'name': f'Progreso de {self.name}',
+            'type': 'ir.actions.act_window',
+            'res_model': 'slide.historial.progreso',
+            'view_mode': 'list,form,pivot,graph',
+            'domain': domain,
+            'context': {
+                'default_user_id': self.user_id.id,
+                'search_default_group_by_slide': 1,
+            },
+            'help': """
+                <p class="o_view_nocontent_smiling_face">
+                    No hay registros de progreso para esta ruta
+                </p>
+                <p>
+                    El progreso se registra automáticamente cuando el usuario
+                    completa las diapositivas de la ruta.
+                </p>
+            """
+        }
+
+    def action_view_slides(self):
+        """Abre una vista con las diapositivas de esta ruta"""
+        self.ensure_one()
+        
+        return {
+            'name': f'Diapositivas de {self.name}',
+            'type': 'ir.actions.act_window',
+            'res_model': 'slide.slide',
+            'view_mode': 'list,form,kanban',
+            'domain': [('id', 'in', self.slide_ids.ids)],
+            'context': {
+                'default_channel_id': self.channel_id.id,
+            },
+            'help': """
+                <p class="o_view_nocontent_smiling_face">
+                    No hay diapositivas en esta ruta
+                </p>
+                <p>
+                    Use el botón "Actualizar Recomendaciones" para generar
+                    diapositivas recomendadas para esta ruta.
+                </p>
+            """
+        }

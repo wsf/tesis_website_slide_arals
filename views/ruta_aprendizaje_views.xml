@@ -7,7 +7,7 @@
             <field name="name">slide.ruta.aprendizaje.tree</field>
             <field name="model">slide.ruta.aprendizaje</field>
             <field name="arch" type="xml">
-                <tree string="Rutas de Aprendizaje" decoration-muted="not activa" decoration-success="progreso_ruta == 100">
+                <list string="Rutas de Aprendizaje" decoration-muted="not activa" decoration-success="progreso_ruta == 100">
                     <field name="name"/>
                     <field name="user_id"/>
                     <field name="channel_id"/>
@@ -16,7 +16,7 @@
                     <field name="progreso_ruta" widget="progressbar"/>
                     <field name="fecha_creacion"/>
                     <field name="activa" widget="boolean_toggle"/>
-                </tree>
+                </list>
             </field>
         </record>
 
@@ -37,16 +37,16 @@
                                     icon="fa-chart-line" help="Ver progreso detallado">
                                 <field string="Progreso" name="progreso_ruta" widget="statinfo"/>
                             </button>
-                            <button class="oe_stat_button" type="object" 
+                            <button class="oe_stat_button" type="object" name="action_view_slides"
                                     icon="fa-file-text-o" help="Total de diapositivas en la ruta">
                                 <field string="Diapositivas" name="total_slides" widget="statinfo"/>
                             </button>
                         </div>
                         
                         <widget name="web_ribbon" title="Inactiva" bg_color="bg-danger" 
-                                attrs="{'invisible': [('activa', '=', True)]}"/>
+                                invisible="activa == True"/>
                         <widget name="web_ribbon" title="Completada" bg_color="bg-success" 
-                                attrs="{'invisible': [('progreso_ruta', '!=', 100)]}"/>
+                                invisible="progreso_ruta != 100"/>
 
                         <div class="oe_title">
                             <h1>
@@ -70,7 +70,7 @@
                         <notebook>
                             <page string="Diapositivas Recomendadas" name="slides">
                                 <field name="slide_ids">
-                                    <tree editable="bottom" decoration-success="nivel_dificultad == 'basico'" 
+                                    <list editable="bottom" decoration-success="nivel_dificultad == 'basico'" 
                                           decoration-info="nivel_dificultad == 'intermedio'" 
                                           decoration-warning="nivel_dificultad == 'avanzado'">
                                         <field name="sequence" widget="handle"/>
@@ -79,9 +79,9 @@
                                         <field name="slide_type" widget="badge"/>
                                         <field name="nivel_dificultad" widget="badge"/>
                                         <field name="website_published" widget="boolean_toggle"/>
-                                    </tree>
+                                    </list>
                                 </field>
-                                <div class="alert alert-info" role="alert" attrs="{'invisible': [('slide_ids', '!=', [])]}">
+                                <div class="alert alert-info" role="alert" invisible="slide_ids">
                                     <strong>Sin diapositivas recomendadas</strong><br/>
                                     Usa el botón "Actualizar Recomendaciones" para generar sugerencias automáticas 
                                     basadas en el perfil y progreso del estudiante.
@@ -156,7 +156,7 @@
                                         </div>
                                         
                                         <div class="mt-2">
-                                            <label class="small text-muted">Progreso:</label>
+                                            <span class="small text-muted">Progreso:</span>
                                             <div class="progress">
                                                 <div class="progress-bar" 
                                                      t-att-style="'width: ' + record.progreso_ruta.value + '%'"
@@ -205,26 +205,21 @@
                     <field name="descripcion" string="Descripción"/>
                     
                     <separator/>
-                    <filter name="activas" string="Activas" domain="[('activa', '=', True)]" default="1"/>
+                    <filter name="activas" string="Activas" domain="[('activa', '=', True)]"/>
                     <filter name="inactivas" string="Inactivas" domain="[('activa', '=', False)]"/>
                     <separator/>
                     <filter name="sin_iniciar" string="Sin Iniciar" domain="[('progreso_ruta', '=', 0)]"/>
-                    <filter name="en_progreso" string="En Progreso" domain="[('progreso_ruta', '>', 0), ('progreso_ruta', '<', 100)]"/>
                     <filter name="completadas" string="Completadas" domain="[('progreso_ruta', '=', 100)]"/>
                     <separator/>
                     <filter name="basico" string="Básico" domain="[('nivel_dificultad', '=', 'basico')]"/>
                     <filter name="intermedio" string="Intermedio" domain="[('nivel_dificultad', '=', 'intermedio')]"/>
                     <filter name="avanzado" string="Avanzado" domain="[('nivel_dificultad', '=', 'avanzado')]"/>
-                    <separator/>
-                    <filter name="creadas_hoy" string="Creadas Hoy" domain="[('fecha_creacion', '>=', context_today().strftime('%Y-%m-%d'))]"/>
-                    <filter name="actualizadas_hoy" string="Actualizadas Hoy" domain="[('fecha_actualizacion', '>=', context_today().strftime('%Y-%m-%d'))]"/>
                     
                     <group expand="0" string="Agrupar Por">
                         <filter string="Usuario" name="group_user" context="{'group_by': 'user_id'}"/>
                         <filter string="Curso" name="group_channel" context="{'group_by': 'channel_id'}"/>
                         <filter string="Nivel de Dificultad" name="group_nivel" context="{'group_by': 'nivel_dificultad'}"/>
                         <filter string="Estado" name="group_activa" context="{'group_by': 'activa'}"/>
-                        <filter string="Mes de Creación" name="group_fecha" context="{'group_by': 'fecha_creacion:month'}"/>
                     </group>
                 </search>
             </field>
@@ -235,7 +230,7 @@
             <field name="name">slide.ruta.aprendizaje.calendar</field>
             <field name="model">slide.ruta.aprendizaje</field>
             <field name="arch" type="xml">
-                <calendar string="Calendario de Rutas" date_start="fecha_creacion" color="nivel_dificultad" quick_add="False" event_open_popup="True">
+                <calendar string="Calendario de Rutas" date_start="fecha_creacion" color="nivel_dificultad">
                     <field name="name"/>
                     <field name="user_id"/>
                     <field name="progreso_ruta"/>
@@ -273,7 +268,7 @@
         <record id="action_ruta_aprendizaje" model="ir.actions.act_window">
             <field name="name">Rutas de Aprendizaje</field>
             <field name="res_model">slide.ruta.aprendizaje</field>
-            <field name="view_mode">kanban,tree,form,calendar,pivot,graph</field>
+            <field name="view_mode">kanban,list,form,calendar,pivot,graph</field>
             <field name="context">{
                 'search_default_activas': 1,
                 'search_default_group_nivel': 1,
@@ -309,13 +304,7 @@
             action="action_ruta_aprendizaje"
             sequence="30"/>
 
-        <!-- Sub-menú para gestión avanzada -->
-        <menuitem 
-            id="menu_ruta_aprendizaje_config"
-            name="Configuración de Rutas"
-            parent="website_slides.website_slides_menu_config"
-            action="action_ruta_aprendizaje"
-            sequence="10"/>
+
 
     </data>
 </odoo>
