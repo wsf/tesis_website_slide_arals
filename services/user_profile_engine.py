@@ -128,10 +128,11 @@ class UserProfileEngine(models.AbstractModel):
 		slides_data = []
 		for slide in ruta.slide_ids.sorted(key=lambda s: s.sequence):
 			progreso = slide_progress.get(slide.id)
+			description = slide.description or getattr(slide, 'website_description', '') or ''
 			slides_data.append({
 				'id': slide.id,
 				'title': slide.name,
-				'description': slide.description or slide.subtitle or '',
+				'description': description,
 				'difficulty': slide.nivel_dificultad or 'basico',
 				'type': slide.slide_category or 'content',
 				'url': f'/slides/slide/{slide.id}',
