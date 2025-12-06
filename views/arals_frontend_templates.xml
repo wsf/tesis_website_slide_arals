@@ -19,6 +19,45 @@
             </div>
         </template>
 
+        <!-- Bloque personalizado de la ruta dentro del curso -->
+        <template id="course_slides_list_arals_personalized" inherit_id="website_slides.course_slides_list">
+            <xpath expr="//div[contains(@class, 'o_wslides_slides_list')]/ul" position="before">
+                <t t-if="arals_learning_path and arals_learning_path.get('slides')">
+                    <div class="o_arals_personalized_wrapper border rounded bg-white shadow-sm mb-4">
+                        <div class="o_arals_personalized_header d-flex flex-column flex-md-row align-items-md-center justify-content-md-between px-3 py-3 border-bottom bg-100">
+                            <div>
+                                <h5 class="mb-1">
+                                    <i class="fa fa-road text-primary me-2"/>
+                                    <t t-esc="arals_learning_path.get('name', 'Tu Ruta Personalizada')"/>
+                                </h5>
+                                <p class="mb-0 text-muted">
+                                    Contenido priorizado según tu progreso y perfil de aprendizaje.
+                                </p>
+                            </div>
+                            <div class="d-flex align-items-center mt-3 mt-md-0">
+                                <span class="badge text-bg-primary me-2">
+                                    <i class="fa fa-percent me-1"/>
+                                    <t t-esc="int(arals_learning_path.get('progress', 0))"/>%
+                                </span>
+                                <span class="text-muted">
+                                    <t t-esc="len(arals_learning_path.get('slides'))"/> lecciones
+                                </span>
+                            </div>
+                        </div>
+
+                        <ul class="list-unstyled mb-0">
+                            <t t-set="category_id" t-value="False"/>
+                            <t t-set="j" t-value="0"/>
+                            <t t-foreach="arals_learning_path_slides" t-as="slide">
+                                <t t-call="website_slides.course_slides_list_slide"/>
+                                <t t-set="j" t-value="j + 1"/>
+                            </t>
+                        </ul>
+                    </div>
+                </t>
+            </xpath>
+        </template>
+
         <!-- Widget de Progreso Adaptativo -->
         <template id="arals_progress_widget" name="ARALS Progress Widget">
             <div class="arals-progress-widget card">
