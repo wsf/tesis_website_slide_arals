@@ -1,8 +1,43 @@
 <odoo>
-    <data noupdate="1">
+    <data>
 
         <!-- Datos de demostración para el módulo ARALS -->
         
+        <!-- Usuarios de demostración -->
+        <record id="demo_student_partner_primary" model="res.partner">
+            <field name="name">Estudiante ARALS 1</field>
+            <field name="email">student1.arals@example.com</field>
+        </record>
+
+        <record id="demo_student_user_primary" model="res.users" context="{'no_reset_password': True}">
+            <field name="name">Estudiante ARALS 1</field>
+            <field name="login">student1.arals@example.com</field>
+            <field name="email">student1.arals@example.com</field>
+            <field name="partner_id" ref="demo_student_partner_primary"/>
+            <field name="password">demo123</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="company_ids" eval="[(6, 0, [ref('base.main_company')])]"/>
+            <field name="notification_type">email</field>
+            <field name="groups_id" eval="[(6, 0, [ref('base.group_portal')])]"/>
+        </record>
+
+        <record id="demo_student_partner_secondary" model="res.partner">
+            <field name="name">Estudiante ARALS 2</field>
+            <field name="email">student2.arals@example.com</field>
+        </record>
+
+        <record id="demo_student_user_secondary" model="res.users" context="{'no_reset_password': True}">
+            <field name="name">Estudiante ARALS 2</field>
+            <field name="login">student2.arals@example.com</field>
+            <field name="email">student2.arals@example.com</field>
+            <field name="partner_id" ref="demo_student_partner_secondary"/>
+            <field name="password">demo123</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="company_ids" eval="[(6, 0, [ref('base.main_company')])]"/>
+            <field name="notification_type">email</field>
+            <field name="groups_id" eval="[(6, 0, [ref('base.group_portal')])]"/>
+        </record>
+
         <!-- Canal/Curso de demostración -->
         <record id="demo_course_python" model="slide.channel">
             <field name="name">Curso Python Adaptativo - ARALS</field>
@@ -54,6 +89,15 @@
             <field name="slide_ids" eval="[(6, 0, [ref('demo_slide_python_basics'), ref('demo_slide_python_control'), ref('demo_slide_python_oop')])]"/>
         </record>
 
+        <record id="demo_ruta_aprendizaje_student_secondary" model="slide.ruta.aprendizaje">
+            <field name="user_id" ref="demo_student_user_secondary"/>
+            <field name="channel_id" ref="demo_course_python"/>
+            <field name="nivel_dificultad">basico</field>
+            <field name="activa">True</field>
+            <field name="descripcion">Ruta base para el estudiante ARALS 2.</field>
+            <field name="slide_ids" eval="[(6, 0, [ref('demo_slide_python_basics'), ref('demo_slide_python_control')])]"/>
+        </record>
+
         <!-- Historial de progreso de demostración -->
         <record id="demo_historial_admin_basics" model="slide.historial.progreso">
             <field name="user_id" ref="base.user_admin"/>
@@ -92,7 +136,7 @@
         </record>
 
         <record id="demo_historial_demo_basics" model="slide.historial.progreso">
-            <field name="user_id" ref="base.user_demo"/>
+            <field name="user_id" ref="demo_student_user_primary"/>
             <field name="slide_id" ref="demo_slide_python_basics"/>
             <field name="channel_id" ref="demo_course_python"/>
             <field name="tiempo_dedicado">41.0</field>
@@ -104,7 +148,7 @@
         </record>
 
         <record id="demo_historial_demo_control" model="slide.historial.progreso">
-            <field name="user_id" ref="base.user_demo"/>
+            <field name="user_id" ref="demo_student_user_primary"/>
             <field name="slide_id" ref="demo_slide_python_control"/>
             <field name="channel_id" ref="demo_course_python"/>
             <field name="tiempo_dedicado">34.7</field>
@@ -116,7 +160,7 @@
         </record>
 
         <record id="demo_historial_demo_oop" model="slide.historial.progreso">
-            <field name="user_id" ref="base.user_demo"/>
+            <field name="user_id" ref="demo_student_user_secondary"/>
             <field name="slide_id" ref="demo_slide_python_oop"/>
             <field name="channel_id" ref="demo_course_python"/>
             <field name="tiempo_dedicado">22.3</field>
