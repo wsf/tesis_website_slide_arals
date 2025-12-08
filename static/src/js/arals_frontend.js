@@ -11,12 +11,13 @@ var core = require('web.core');
 var ajax = require('web.ajax');
 
 var _t = core._t;
+var qweb = core.qweb;
 
 /**
  * Widget principal ARALS para el frontend
  */
 var AralsEngine = publicWidget.Widget.extend({
-    selector: '.arals-container',
+    selector: '.arals-dashboard',
     events: {
         'click [data-action="refresh-progress"]': '_onRefreshProgress',
         'click [data-action="start-assessment"]': '_onStartAssessment',
@@ -25,15 +26,21 @@ var AralsEngine = publicWidget.Widget.extend({
 
     init: function () {
         this._super.apply(this, arguments);
+        this.dashboardData = {};
         this.recommendations = [];
         this.userProgress = {};
+        this.charts = {
+            progress: null,
+            level: null,
+            time: null,
+        };
     },
 
     start: function () {
-        this._super.apply(this, arguments);
-        this._loadUserData();
-        this._initializeCharts();
-        return this._super.apply(this, arguments);
+        var self = this;
+        return this._super.apply(this, arguments).then(function () {
+            return self._loadUserData();
+        });
     },
 
     /**
@@ -41,11 +48,32 @@ var AralsEngine = publicWidget.Widget.extend({
      */
     _loadUserData: function () {
         var self = this;
-        return ajax.rpc('/arals/api/user-data', {}).then(function (data) {
+        var channelId = this.$el.data('channelId') || false;
+
+        return ajax.rpc('/arals/api/user-data', {
+            channel_id: channelId,
+        }).then(function (data) {
+            if (!data || data.status !== 'success') {
+                return;
+            }
+
+            delete data.status;
+
+            var effectiveChannel = data.active_channel_id || channelId || false;
+            self.$el.data('channelId', effectiveChannel);
+
+            self.dashboardData = data;
             self.userProgress = data.progress || {};
             self.recommendations = data.recommendations || [];
+
             self._updateProgressWidgets();
-            self._updateRecommendations();
+            self._updateProfileWidgets();
+            self._updateStatsWidgets();
+            self._updateLearningPath();
+            self._updateNotifications();
+            self._renderRecommendations();
+            self._renderCharts();
+            self._renderRecentActivity();
         });
     },
 
@@ -53,123 +81,306 @@ var AralsEngine = publicWidget.Widget.extend({
      * Actualiza los widgets de progreso
      */
     _updateProgressWidgets: function () {
-        var $progressBars = this.$('.progress-bar');
-        var self = this;
-        
-        $progressBars.each(function () {
-            var $bar = $(this);
-            var percentage = $bar.attr('aria-valuenow') || 0;
-            $bar.animate({
-                width: percentage + '%'
-            }, 1000);
-        });
+        var progress = this.dashboardData.progress || {};
+        var globalProgress = this.dashboardData.global_progress || {};
 
-        // Actualizar estadísticas
-        this.$('.stat-number').each(function () {
-            var $stat = $(this);
-            var finalValue = parseInt($stat.text()) || 0;
-            var currentValue = 0;
-            var increment = finalValue / 50;
-            
-            var counter = setInterval(function () {
-                if (currentValue >= finalValue) {
-                    clearInterval(counter);
-                    $stat.text(finalValue);
-                } else {
-                    currentValue += increment;
-                    $stat.text(Math.floor(currentValue));
-                }
-            }, 20);
-        });
-    },
+        this.$('[data-stat="completed"]').text(progress.completed || 0);
+        this.$('[data-stat="in_progress"]').text(progress.in_progress || 0);
+        this.$('[data-stat="recommended"]').text(progress.recommended || 0);
+        this.$('[data-stat="global_completed"]').text(globalProgress.completed || 0);
 
-    /**
-     * Actualiza las recomendaciones
-     */
-    _updateRecommendations: function () {
-        var self = this;
-        if (this.recommendations.length > 0) {
-            this._renderRecommendations();
+        var percentage = progress.percentage || 0;
+        var $bar = this.$('[data-role="progress-bar"]');
+        $bar.css('width', percentage + '%');
+        $bar.attr('aria-valuenow', percentage);
+        $bar.find('[data-role="progress-label"]').text(percentage + '%');
+
+        this.$('[data-stat="total_time"]').text(progress.total_time || 0);
+        if (progress.last_activity) {
+            this.$('[data-stat="last_activity"]').text(progress.last_activity);
         }
     },
 
-    /**
-     * Renderiza las recomendaciones
-     */
+    _updateProfileWidgets: function () {
+        var profile = this.dashboardData.profile || {};
+
+        this.$('[data-profile="visual"]').css('width', (profile.visual || 0) + '%');
+        this.$('[data-profile="visual-value"]').text((profile.visual || 0) + '%');
+
+        this.$('[data-profile="auditory"]').css('width', (profile.auditory || 0) + '%');
+        this.$('[data-profile="auditory-value"]').text((profile.auditory || 0) + '%');
+
+        this.$('[data-profile="kinesthetic"]').css('width', (profile.kinesthetic || 0) + '%');
+        this.$('[data-profile="kinesthetic-value"]').text((profile.kinesthetic || 0) + '%');
+
+        this.$('[data-profile-label="best_time"]').text(profile.best_time || _t('Mañana'));
+        this.$('[data-profile-label="pace"]').text(profile.pace || _t('Moderado'));
+        this.$('[data-profile-label="level"]').text(profile.level || _t('Intermedio'));
+    },
+
+    _updateStatsWidgets: function () {
+        var analytics = this.dashboardData.analytics || {};
+        var stats = analytics.stats || {};
+
+        this.$('[data-stat="achievements"]').text(stats.achievements || 0);
+        this.$('[data-stat="streak"]').text(stats.streak || 0);
+        this.$('[data-stat="total_hours"]').text(stats.total_hours || 0);
+        this.$('[data-stat="avg_score"]').text(stats.avg_score || 0);
+    },
+
+    _updateLearningPath: function () {
+        var learningPath = this.dashboardData.learning_path || {};
+        var slides = learningPath.slides || [];
+
+        var $wrapper = this.$('[data-role="learning-path-wrapper"]');
+        var $empty = this.$('[data-role="learning-path-empty"]');
+        var $items = this.$('[data-role="learning-path-items"]');
+
+        if (!$items.length) {
+            return;
+        }
+
+        if (!slides.length) {
+            $items.empty();
+            $wrapper.addClass('d-none');
+            $empty.removeClass('d-none');
+            return;
+        }
+
+        $wrapper.removeClass('d-none');
+        $empty.addClass('d-none');
+        $items.empty();
+
+        slides.forEach(function (slide) {
+            var html = qweb.render('tesis_website_slide_arals.arals_learning_path_item', {
+                slide: slide,
+            });
+            $items.append(html);
+        });
+    },
+
+    _updateNotifications: function () {
+        var notifications = this.dashboardData.notifications || [];
+        var $container = this.$('[data-role="notifications"]');
+        if (!$container.length) {
+            return;
+        }
+
+        if (!notifications.length) {
+            $container.empty();
+            return;
+        }
+
+        var html = qweb.render('tesis_website_slide_arals.arals_adaptive_notifications', {
+            notifications: notifications,
+        });
+        $container.html(html);
+    },
+
     _renderRecommendations: function () {
-        // Implementar renderizado dinámico de recomendaciones
-        var $container = this.$('.recommendations-grid');
-        if ($container.length) {
-            // Animación de entrada para nuevas recomendaciones
-            $container.find('.recommendation-card').fadeIn(500);
+        var recommendations = this.recommendations || [];
+        var $panel = this.$('.arals-recommendations-panel');
+        if (!$panel.length) {
+            return;
         }
+
+        var $counter = $panel.find('[data-role="recommendation-count"]');
+        var $grid = $panel.find('.recommendations-grid');
+        var $empty = $panel.find('[data-role="empty-state"]');
+
+        $counter.text(recommendations.length);
+
+        if (!recommendations.length) {
+            $grid.empty().addClass('d-none');
+            $empty.removeClass('d-none');
+            return;
+        }
+
+        $empty.addClass('d-none');
+        $grid.removeClass('d-none').empty();
+
+        recommendations.forEach(function (rec) {
+            var html = qweb.render('tesis_website_slide_arals.arals_recommendation_card', {
+                recommendation: rec,
+            });
+            $grid.append(html);
+        });
     },
 
-    /**
-     * Inicializa los gráficos
-     */
-    _initializeCharts: function () {
-        this._initProgressChart();
-        this._initLevelChart();
+    _renderCharts: function () {
+        if (typeof Chart === 'undefined') {
+            return;
+        }
+
+        var analytics = this.dashboardData.analytics || {};
+        this._renderProgressChart(analytics.progress_trend || []);
+        this._renderLevelChart(analytics.difficulty_distribution || {});
+        this._renderStudyTimeChart(analytics.study_time || []);
     },
 
-    /**
-     * Gráfico de progreso
-     */
-    _initProgressChart: function () {
-        var ctx = this.$('#progressChart')[0];
-        if (!ctx) return;
-        
-        ctx = ctx.getContext('2d');
-        new Chart(ctx, {
+    _renderProgressChart: function (trend) {
+        var canvas = this.el.querySelector('#progressChart');
+        if (!canvas || typeof Chart === 'undefined') {
+            return;
+        }
+
+        var labels = trend.map(function (item) { return item.label; });
+        var completed = trend.map(function (item) { return item.completed; });
+        var inProgress = trend.map(function (item) { return item.in_progress; });
+
+        if (this.charts.progress) {
+            this.charts.progress.data.labels = labels;
+            this.charts.progress.data.datasets[0].data = completed;
+            this.charts.progress.data.datasets[1].data = inProgress;
+            this.charts.progress.update();
+            return;
+        }
+
+        this.charts.progress = new Chart(canvas.getContext('2d'), {
             type: 'line',
             data: {
-                labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
-                datasets: [{
-                    label: 'Progreso (%)',
-                    data: [20, 35, 45, 60, 75, 87],
-                    borderColor: 'rgb(75, 192, 192)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    tension: 0.1
-                }]
+                labels: labels,
+                datasets: [
+                    {
+                        label: _t('Completadas'),
+                        data: completed,
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                        tension: 0.2,
+                        fill: true,
+                    },
+                    {
+                        label: _t('En Progreso'),
+                        data: inProgress,
+                        borderColor: '#17a2b8',
+                        backgroundColor: 'rgba(23, 162, 184, 0.2)',
+                        tension: 0.2,
+                        fill: true,
+                    },
+                ],
             },
             options: {
                 responsive: true,
                 scales: {
                     y: {
                         beginAtZero: true,
-                        max: 100
-                    }
-                }
-            }
+                    },
+                },
+            },
         });
     },
 
-    /**
-     * Gráfico de distribución por nivel
-     */
-    _initLevelChart: function () {
-        var ctx = this.$('#levelChart')[0];
-        if (!ctx) return;
-        
-        ctx = ctx.getContext('2d');
-        new Chart(ctx, {
+    _renderLevelChart: function (distribution) {
+        var canvas = this.el.querySelector('#levelChart');
+        if (!canvas || typeof Chart === 'undefined') {
+            return;
+        }
+
+        var data = [
+            distribution.basico || 0,
+            distribution.intermedio || 0,
+            distribution.avanzado || 0,
+        ];
+
+        if (this.charts.level) {
+            this.charts.level.data.datasets[0].data = data;
+            this.charts.level.update();
+            return;
+        }
+
+        this.charts.level = new Chart(canvas.getContext('2d'), {
             type: 'doughnut',
             data: {
-                labels: ['Básico', 'Intermedio', 'Avanzado'],
+                labels: [_t('Básico'), _t('Intermedio'), _t('Avanzado')],
                 datasets: [{
-                    data: [40, 35, 25],
-                    backgroundColor: [
-                        '#28a745',
-                        '#17a2b8', 
-                        '#ffc107'
-                    ]
-                }]
+                    data: data,
+                    backgroundColor: ['#28a745', '#17a2b8', '#ffc107'],
+                }],
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false
+                maintainAspectRatio: false,
+            },
+        });
+    },
+
+    _renderStudyTimeChart: function (series) {
+        var canvas = this.el.querySelector('#timeChart');
+        if (!canvas || typeof Chart === 'undefined') {
+            return;
+        }
+
+        var labels = series.map(function (item) { return item.label; });
+        var minutes = series.map(function (item) { return item.minutes; });
+
+        if (this.charts.time) {
+            this.charts.time.data.labels = labels;
+            this.charts.time.data.datasets[0].data = minutes;
+            this.charts.time.update();
+            return;
+        }
+
+        this.charts.time = new Chart(canvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: _t('Minutos dedicados'),
+                    data: minutes,
+                    backgroundColor: '#6f42c1',
+                }],
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                    },
+                },
+            },
+        });
+    },
+
+    _renderRecentActivity: function () {
+        var analytics = this.dashboardData.analytics || {};
+        var recent = analytics.recent_activity || [];
+        var $body = this.$('[data-role="recent-activity-body"]');
+
+        if (!$body.length) {
+            return;
+        }
+
+        if (!recent.length) {
+            $body.html('<tr><td colspan="4" class="text-muted">' + _t('Sin actividad reciente') + '</td></tr>');
+            return;
+        }
+
+        $body.empty();
+
+        recent.forEach(function (item) {
+            var $row = $('<tr/>');
+            var $titleCell = $('<td/>');
+            if (item.url) {
+                $('<a/>', {
+                    href: item.url,
+                    text: item.slide || '',
+                }).appendTo($titleCell);
+            } else {
+                $titleCell.text(item.slide || '');
             }
+            $row.append($titleCell);
+
+            $('<td/>', { text: item.channel || '' }).appendTo($row);
+
+            var $badge = $('<span/>', {
+                class: item.completed ? 'badge bg-success' : 'badge bg-warning text-dark',
+                text: item.completed ? _t('Completado') : _t('En progreso'),
+            });
+            $('<td/>').append($badge).appendTo($row);
+
+            $('<td/>', { text: (item.score || 0) + '%' }).appendTo($row);
+
+            $body.append($row);
         });
     },
 
@@ -182,10 +393,16 @@ var AralsEngine = publicWidget.Widget.extend({
         $btn.prop('disabled', true);
         
         var self = this;
-        this._loadUserData().then(function () {
-            $btn.prop('disabled', false);
-            self._showNotification('success', _t('Progreso actualizado correctamente'));
-        });
+        this._loadUserData()
+            .then(function () {
+                self._showNotification('success', _t('Progreso actualizado correctamente'));
+            })
+            .catch(function () {
+                self._showNotification('danger', _t('No se pudo actualizar el progreso'));
+            })
+            .finally(function () {
+                $btn.prop('disabled', false);
+            });
     },
 
     _onStartAssessment: function (ev) {
@@ -200,12 +417,19 @@ var AralsEngine = publicWidget.Widget.extend({
         $btn.addClass('btn-loading');
         
         var self = this;
-        ajax.rpc('/arals/api/generate-recommendations', {}).then(function (data) {
-            self.recommendations = data.recommendations || [];
-            self._updateRecommendations();
-            $btn.removeClass('btn-loading');
-            self._showNotification('success', _t('Recomendaciones actualizadas'));
-        });
+        ajax.rpc('/arals/api/generate-recommendations', {})
+            .then(function (data) {
+                if (data && data.status === 'success') {
+                    self._showNotification('success', _t('Recomendaciones actualizadas'));
+                }
+                return self._loadUserData();
+            })
+            .catch(function () {
+                self._showNotification('danger', _t('No se pudieron generar nuevas recomendaciones'));
+            })
+            .finally(function () {
+                $btn.removeClass('btn-loading');
+            });
     },
 
     /**

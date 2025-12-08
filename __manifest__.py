@@ -27,6 +27,7 @@
     ],
     'assets': {
         'web.assets_frontend': [
+            'web/static/lib/Chart/Chart.js',
             'tesis_website_slide_arals/static/src/js/arals_frontend.js',
             'tesis_website_slide_arals/static/src/css/arals_frontend.css',
         ],

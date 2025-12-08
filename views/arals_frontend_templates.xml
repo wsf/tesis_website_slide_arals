@@ -19,6 +19,79 @@
             </div>
         </template>
 
+        <template id="arals_recommendation_card" name="ARALS Recommendation Card">
+            <div class="recommendation-card card mb-3" t-att-data-recommendation-id="recommendation.get('id')">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div class="recommendation-info pe-3">
+                            <h6 class="card-title" t-esc="recommendation.get('title')"/>
+                            <p class="card-text text-muted mb-2" t-esc="recommendation.get('description')"/>
+                            <div class="recommendation-meta d-flex align-items-center">
+                                <span class="badge"
+                                      t-att-class="'badge-success' if recommendation.get('difficulty') == 'basico' else 'badge-info' if recommendation.get('difficulty') == 'intermedio' else 'badge-warning'"
+                                      t-esc="recommendation.get('difficulty', '').title()"/>
+                                <small class="text-muted ms-2">
+                                    <i class="fa fa-clock-o"/> <t t-esc="recommendation.get('estimated_time', 0)"/> min
+                                </small>
+                            </div>
+                        </div>
+                        <div class="recommendation-actions text-center">
+                            <div class="confidence-score mb-2">
+                                <div class="score-circle"
+                                     t-att-style="'--score: %s;' % int(recommendation.get('confidence', 0))">
+                                    <span t-esc="int(recommendation.get('confidence', 0))"/>%
+                                </div>
+                                <small class="text-muted d-block">Confianza</small>
+                            </div>
+                            <a t-att-href="recommendation.get('url')"
+                               class="btn btn-sm btn-primary">
+                                Empezar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <template id="arals_learning_path_item" name="ARALS Learning Path Item">
+              <div class="timeline-item"
+                  t-att-class="'completed' if slide.get('completed') else 'pending'"
+                 t-att-data-slide-id="slide.get('id')">
+                <div class="timeline-marker">
+                    <i t-att-class="'fa fa-check-circle text-success' if slide.get('completed') else 'fa fa-circle-o text-muted'"/>
+                </div>
+                <div class="timeline-content">
+                    <div class="card">
+                        <div class="card-body p-3">
+                            <h6 class="card-title mb-1" t-esc="slide.get('title')"/>
+                            <p class="card-text small text-muted mb-2" t-esc="slide.get('description')"/>
+                            <div class="slide-meta d-flex justify-content-between align-items-center">
+                                <div class="me-2">
+                                    <span class="badge"
+                                          t-att-class="'badge-success' if slide.get('difficulty') == 'basico' else 'badge-info' if slide.get('difficulty') == 'intermedio' else 'badge-warning'"
+                                          t-esc="slide.get('difficulty', '').title()"/>
+                                    <span class="badge badge-secondary ms-1" t-esc="slide.get('type', '').title()"/>
+                                </div>
+                                <div>
+                                    <t t-if="slide.get('completed')">
+                                        <span class="text-success small">
+                                            <i class="fa fa-star"/> <t t-esc="slide.get('score', 0)"/>%
+                                        </span>
+                                    </t>
+                                    <t t-else="">
+                                        <a t-att-href="slide.get('url')" class="btn btn-sm btn-outline-primary">
+                                            <t t-if="slide.get('in_progress')">Continuar</t>
+                                            <t t-else="">Empezar</t>
+                                        </a>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
         <!-- Bloque personalizado de la ruta dentro del curso -->
         <template id="course_slides_list_arals_personalized" inherit_id="website_slides.course_slides_list">
             <xpath expr="//div[contains(@class, 'o_wslides_slides_list')]/ul" position="before">
@@ -73,19 +146,19 @@
                     <div class="progress-stats row">
                         <div class="col-md-4 text-center">
                             <div class="stat-box">
-                                <h3 class="text-success" t-esc="progress_data.get('completed', 0)"/>
+                                <h3 class="text-success" data-stat="completed" t-esc="progress_data.get('completed', 0)"/>
                                 <small class="text-muted">Completadas</small>
                             </div>
                         </div>
                         <div class="col-md-4 text-center">
                             <div class="stat-box">
-                                <h3 class="text-info" t-esc="progress_data.get('in_progress', 0)"/>
+                                <h3 class="text-info" data-stat="in_progress" t-esc="progress_data.get('in_progress', 0)"/>
                                 <small class="text-muted">En Progreso</small>
                             </div>
                         </div>
                         <div class="col-md-4 text-center">
                             <div class="stat-box">
-                                <h3 class="text-warning" t-esc="progress_data.get('recommended', 0)"/>
+                                <h3 class="text-warning" data-stat="recommended" t-esc="progress_data.get('recommended', 0)"/>
                                 <small class="text-muted">Recomendadas</small>
                             </div>
                         </div>
@@ -95,15 +168,23 @@
                         <label class="form-label">Progreso General</label>
                         <div class="progress mb-2">
                             <div class="progress-bar bg-success" 
+                                 data-role="progress-bar"
                                  t-att-style="'width: ' + str(progress_data.get('percentage', 0)) + '%'"
                                  t-att-aria-valuenow="progress_data.get('percentage', 0)"
                                  aria-valuemin="0" aria-valuemax="100">
-                                <span t-esc="progress_data.get('percentage', 0)"/>%
+                                <span data-role="progress-label" t-esc="progress_data.get('percentage', 0)"/>%
                             </div>
                         </div>
-                        <small class="text-muted">
-                            <t t-esc="progress_data.get('total_time', 0)"/> minutos dedicados este mes
-                        </small>
+                        <div class="d-flex justify-content-between text-muted small">
+                            <span>
+                                <i class="fa fa-clock-o me-1"/>
+                                <span data-stat="total_time" t-esc="progress_data.get('total_time', 0)"/> min dedicados
+                            </span>
+                            <span>
+                                <i class="fa fa-calendar me-1"/>
+                                <span data-stat="last_activity" t-esc="progress_data.get('last_activity') or '-'"/>
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -116,53 +197,19 @@
                     <h4>
                         <i class="fa fa-lightbulb-o text-warning"/> Recomendado para ti
                     </h4>
-                    <span class="badge badge-info" t-esc="len(recommendations)"/> contenidos
+                    <span class="badge badge-info" data-role="recommendation-count" t-esc="len(recommendations)"/> contenidos
                 </div>
                 
-                <t t-if="not recommendations">
-                    <div class="alert alert-info">
-                        <i class="fa fa-info-circle"/> 
-                        No hay recomendaciones disponibles. Completa más contenido para recibir sugerencias personalizadas.
-                    </div>
-                </t>
+                <div class="alert alert-info" data-role="empty-state" t-attf-class="alert alert-info {{ 'd-none' if recommendations else '' }}">
+                    <i class="fa fa-info-circle"/> 
+                    No hay recomendaciones disponibles. Completa más contenido para recibir sugerencias personalizadas.
+                </div>
                 
-                <t t-else="">
-                    <div class="recommendations-grid">
-                        <t t-foreach="recommendations" t-as="recommendation">
-                            <div class="recommendation-card card mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between">
-                                        <div class="recommendation-info">
-                                            <h6 class="card-title" t-esc="recommendation.get('title')"/>
-                                            <p class="card-text text-muted" t-esc="recommendation.get('description')"/>
-                                            <div class="recommendation-meta">
-                                                <span class="badge" 
-                                                      t-att-class="'badge-success' if recommendation.get('difficulty') == 'basico' else 'badge-info' if recommendation.get('difficulty') == 'intermedio' else 'badge-warning'"
-                                                      t-esc="recommendation.get('difficulty', '').title()"/>
-                                                <small class="text-muted ml-2">
-                                                    <i class="fa fa-clock-o"/> <t t-esc="recommendation.get('estimated_time', 0)"/> min
-                                                </small>
-                                            </div>
-                                        </div>
-                                        <div class="recommendation-actions">
-                                            <div class="confidence-score text-center mb-2">
-                                                <div class="score-circle" 
-                                                     t-att-data-score="recommendation.get('confidence', 0)">
-                                                    <span t-esc="int(recommendation.get('confidence', 0))"/>%
-                                                </div>
-                                                <small class="text-muted d-block">Confianza</small>
-                                            </div>
-                                            <a t-att-href="recommendation.get('url')" 
-                                               class="btn btn-sm btn-primary">
-                                                Empezar
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </t>
-                    </div>
-                </t>
+                <div class="recommendations-grid" t-attf-class="recommendations-grid {{ '' if recommendations else 'd-none' }}">
+                    <t t-foreach="recommendations" t-as="recommendation">
+                        <t t-call="tesis_website_slide_arals.arals_recommendation_card"/>
+                    </t>
+                </div>
             </div>
         </template>
 
@@ -179,57 +226,23 @@
                 </div>
 
                 <div class="path-visualization">
-                    <t t-if="learning_path">
-                        <div class="path-timeline">
-                            <t t-foreach="learning_path.get('slides', [])" t-as="slide">
-                                <div class="timeline-item" 
-                                     t-att-class="'completed' if slide.get('completed') else 'pending'">
-                                    <div class="timeline-marker">
-                                        <i t-att-class="'fa fa-check-circle text-success' if slide.get('completed') else 'fa fa-circle-o text-muted'"/>
-                                    </div>
-                                    <div class="timeline-content">
-                                        <div class="card">
-                                            <div class="card-body p-3">
-                                                <h6 class="card-title" t-esc="slide.get('title')"/>
-                                                <p class="card-text small text-muted" t-esc="slide.get('description')"/>
-                                                <div class="slide-meta d-flex justify-content-between align-items-center">
-                                                    <div>
-                                                        <span class="badge" 
-                                                              t-att-class="'badge-success' if slide.get('difficulty') == 'basico' else 'badge-info' if slide.get('difficulty') == 'intermedio' else 'badge-warning'"
-                                                              t-esc="slide.get('difficulty', '').title()"/>
-                                                        <span class="badge badge-secondary ml-1" t-esc="slide.get('type', '').title()"/>
-                                                    </div>
-                                                    <div>
-                                                        <t t-if="slide.get('completed')">
-                                                            <span class="text-success small">
-                                                                <i class="fa fa-star"/> <t t-esc="slide.get('score', 0)"/>%
-                                                            </span>
-                                                        </t>
-                                                        <t t-else="">
-                                                            <a t-att-href="slide.get('url')" class="btn btn-sm btn-outline-primary">
-                                                                <t t-if="slide.get('in_progress')">Continuar</t>
-                                                                <t t-else="">Empezar</t>
-                                                            </a>
-                                                        </t>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                    <div class="path-timeline" data-role="learning-path-wrapper" t-attf-class="path-timeline {{ '' if learning_path and learning_path.get('slides') else 'd-none' }}">
+                        <div data-role="learning-path-items">
+                            <t t-if="learning_path">
+                                <t t-foreach="learning_path.get('slides', [])" t-as="slide">
+                                    <t t-call="tesis_website_slide_arals.arals_learning_path_item"/>
+                                </t>
                             </t>
                         </div>
-                    </t>
-                    <t t-else="">
-                        <div class="alert alert-info text-center">
-                            <i class="fa fa-info-circle fa-2x text-primary mb-2"/>
-                            <h5>¡Construyamos tu ruta de aprendizaje!</h5>
-                            <p>Completa una evaluación inicial para que podamos crear una ruta personalizada para ti.</p>
-                            <button class="btn btn-primary" data-action="start-assessment">
-                                <i class="fa fa-play"/> Empezar Evaluación
-                            </button>
-                        </div>
-                    </t>
+                    </div>
+                    <div class="alert alert-info text-center" data-role="learning-path-empty" t-attf-class="alert alert-info {{ 'd-none' if learning_path and learning_path.get('slides') else '' }}">
+                        <i class="fa fa-info-circle fa-2x text-primary mb-2"/>
+                        <h5>¡Construyamos tu ruta de aprendizaje!</h5>
+                        <p>Completa una evaluación inicial para que podamos crear una ruta personalizada para ti.</p>
+                        <button class="btn btn-primary" data-action="start-assessment">
+                            <i class="fa fa-play"/> Empezar Evaluación
+                        </button>
+                    </div>
                 </div>
             </div>
         </template>
@@ -244,7 +257,7 @@
                                 <div class="stat-icon">
                                     <i class="fa fa-trophy text-warning fa-2x"/>
                                 </div>
-                                <h4 class="stat-number" t-esc="stats.get('achievements', 0)"/>
+                                <h4 class="stat-number" data-stat="achievements" t-esc="stats.get('achievements', 0)"/>
                                 <p class="stat-label text-muted">Logros</p>
                             </div>
                         </div>
@@ -255,7 +268,7 @@
                                 <div class="stat-icon">
                                     <i class="fa fa-fire text-danger fa-2x"/>
                                 </div>
-                                <h4 class="stat-number" t-esc="stats.get('streak', 0)"/>
+                                <h4 class="stat-number" data-stat="streak" t-esc="stats.get('streak', 0)"/>
                                 <p class="stat-label text-muted">Días Consecutivos</p>
                             </div>
                         </div>
@@ -266,7 +279,7 @@
                                 <div class="stat-icon">
                                     <i class="fa fa-clock-o text-info fa-2x"/>
                                 </div>
-                                <h4 class="stat-number" t-esc="stats.get('total_time', 0)"/>
+                                <h4 class="stat-number" data-stat="total_hours" t-esc="stats.get('total_hours', 0)"/>
                                 <p class="stat-label text-muted">Horas Totales</p>
                             </div>
                         </div>
@@ -277,7 +290,7 @@
                                 <div class="stat-icon">
                                     <i class="fa fa-star text-success fa-2x"/>
                                 </div>
-                                <h4 class="stat-number" t-esc="stats.get('avg_score', 0)"/>
+                                <h4 class="stat-number" data-stat="avg_score" t-esc="stats.get('avg_score', 0)"/>
                                 <p class="stat-label text-muted">Puntuación Media</p>
                             </div>
                         </div>
@@ -303,25 +316,31 @@
                                     <label>Visual</label>
                                     <div class="progress">
                                         <div class="progress-bar bg-info" 
+                                             data-profile="visual"
                                              t-att-style="'width: ' + str(profile.get('visual', 0)) + '%'">
                                         </div>
                                     </div>
+                                    <small class="text-muted"><span data-profile="visual-value" t-esc="str(profile.get('visual', 0))"/>%</small>
                                 </div>
                                 <div class="style-bar">
                                     <label>Auditivo</label>
                                     <div class="progress">
                                         <div class="progress-bar bg-warning" 
+                                             data-profile="auditory"
                                              t-att-style="'width: ' + str(profile.get('auditory', 0)) + '%'">
                                         </div>
                                     </div>
+                                    <small class="text-muted"><span data-profile="auditory-value" t-esc="str(profile.get('auditory', 0))"/>%</small>
                                 </div>
                                 <div class="style-bar">
                                     <label>Kinestésico</label>
                                     <div class="progress">
                                         <div class="progress-bar bg-success" 
+                                             data-profile="kinesthetic"
                                              t-att-style="'width: ' + str(profile.get('kinesthetic', 0)) + '%'">
                                         </div>
                                     </div>
+                                    <small class="text-muted"><span data-profile="kinesthetic-value" t-esc="str(profile.get('kinesthetic', 0))"/>%</small>
                                 </div>
                             </div>
                         </div>
@@ -330,15 +349,15 @@
                             <ul class="list-unstyled">
                                 <li>
                                     <i class="fa fa-clock-o text-info"/> 
-                                    Mejor momento: <strong t-esc="profile.get('best_time', 'Mañana')"/>
+                                    Mejor momento: <strong data-profile-label="best_time" t-esc="profile.get('best_time', 'Mañana')"/>
                                 </li>
                                 <li>
                                     <i class="fa fa-dashboard text-warning"/> 
-                                    Ritmo preferido: <strong t-esc="profile.get('pace', 'Moderado')"/>
+                                    Ritmo preferido: <strong data-profile-label="pace" t-esc="profile.get('pace', 'Moderado')"/>
                                 </li>
                                 <li>
                                     <i class="fa fa-target text-success"/> 
-                                    Nivel actual: <strong t-esc="profile.get('level', 'Intermedio')"/>
+                                    Nivel actual: <strong data-profile-label="level" t-esc="profile.get('level', 'Intermedio')"/>
                                 </li>
                             </ul>
                         </div>

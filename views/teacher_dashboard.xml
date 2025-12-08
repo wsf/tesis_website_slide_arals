@@ -1,9 +1,111 @@
 <odoo>
   <template id="teacher_dashboard" name="Dashboard Profesor">
     <t t-call="website.layout">
-      <div class="container mt-4">
-        <h2>Panel de Control del Profesor</h2>
-        <!-- Mostrar estadísticas de estudiantes -->
+      <div class="container my-5">
+        <div class="arals-teacher-panel">
+          <div class="mb-4">
+            <h2 class="mb-1">Panel del Profesor</h2>
+            <p class="text-muted">Supervisa el progreso de tus estudiantes y rutas adaptativas</p>
+          </div>
+
+          <t t-set="analytics" t-value="analytics or {}"/>
+          <t t-call="tesis_website_slide_arals.arals_teacher_control_panel"/>
+
+          <div class="row g-4 mt-1">
+            <t t-foreach="channel_summary" t-as="summary">
+              <div class="col-lg-4 col-md-6">
+                <div class="card h-100">
+                  <div class="card-body">
+                    <h5 class="text-muted text-uppercase small mb-2"><t t-esc="summary.get('canal')"/></h5>
+                    <p class="h4 mb-3"><t t-esc="summary.get('estudiantes', 0)"/> estudiantes activos</p>
+                    <ul class="list-unstyled text-muted small mb-0">
+                      <li><i class="fa fa-chart-line text-success me-2"/>Progreso promedio: <strong><t t-esc="summary.get('progreso_promedio', 0)"/>%</strong></li>
+                      <li><i class="fa fa-clock text-info me-2"/>Tiempo promedio: <strong><t t-esc="summary.get('tiempo_promedio', 0)"/> min</strong></li>
+                      <li><i class="fa fa-star text-warning me-2"/>Puntuación media: <strong><t t-esc="summary.get('puntaje_promedio', 0)"/>%</strong></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </t>
+            <t t-if="not channel_summary">
+              <div class="col-12">
+                <div class="alert alert-light mb-0">
+                  <i class="fa fa-info-circle text-primary me-2"/> Aún no hay datos suficientes para mostrar un resumen por curso.
+                </div>
+              </div>
+            </t>
+          </div>
+
+          <div class="row g-4 mt-1">
+            <div class="col-lg-8">
+              <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="mb-0"><i class="fa fa-users text-primary me-2"/>Desempeño de Estudiantes</h5>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                      <thead>
+                        <tr>
+                          <th>Estudiante</th>
+                          <th>Curso</th>
+                          <th>Diapositivas completadas</th>
+                          <th>Tiempo total (min)</th>
+                          <th>Puntuación media</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <t t-foreach="estudiantes_data" t-as="student">
+                          <tr>
+                            <td t-esc="student['nombre']"/>
+                            <td t-esc="student['canal']"/>
+                            <td t-esc="student['progreso']"/>
+                            <td t-esc="student['tiempo_total']"/>
+                            <td><t t-esc="'%.1f' % student['promedio']"/>%</td>
+                          </tr>
+                        </t>
+                        <t t-if="not estudiantes_data">
+                          <tr>
+                            <td colspan="5" class="text-muted text-center py-4">
+                              No hay actividad registrada todavía en tus cursos.
+                            </td>
+                          </tr>
+                        </t>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4">
+              <div class="card h-100">
+                <div class="card-header">
+                  <h5 class="mb-0"><i class="fa fa-trophy text-warning me-2"/>Top Estudiantes</h5>
+                </div>
+                <div class="card-body">
+                  <t t-if="leaderboard">
+                    <ol class="list-group list-group-numbered">
+                      <t t-foreach="leaderboard" t-as="entry">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                          <div>
+                            <strong t-esc="entry['nombre']"/>
+                            <div class="small text-muted" t-esc="entry['canal']"/>
+                          </div>
+                          <span class="badge bg-success"><t t-esc="entry['progreso']"/> completadas</span>
+                        </li>
+                      </t>
+                    </ol>
+                  </t>
+                  <t t-else="">
+                    <div class="alert alert-light mb-0">
+                      <i class="fa fa-info-circle text-primary me-2"/> No hay estudiantes destacados todavía.
+                    </div>
+                  </t>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </t>
   </template>

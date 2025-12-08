@@ -1,9 +1,180 @@
 <odoo>
   <template id="student_dashboard" name="Dashboard Estudiante">
     <t t-call="website.layout">
-      <div class="container mt-4">
-        <h2>Mi Dashboard de Aprendizaje</h2>
-        <!-- Aquí podrías mostrar historial, progreso, etc. -->
+      <t t-set="dashboard_data" t-value="dashboard_data or {}"/>
+      <t t-set="recent_activity" t-value="recent_activity or []"/>
+      <div class="container my-5 arals-dashboard" t-att-data-channel-id="dashboard_data.get('active_channel_id') or ''">
+        <div class="row mb-4">
+          <div class="col-12">
+            <h2 class="mb-1">Hola, <t t-esc="user.name"/></h2>
+            <p class="text-muted">Este es tu resumen adaptativo de aprendizaje</p>
+          </div>
+        </div>
+
+        <div class="mb-3" data-role="notifications">
+          <t t-set="notifications" t-value="notifications or []"/>
+          <t t-call="tesis_website_slide_arals.arals_adaptive_notifications"/>
+        </div>
+
+        <div class="row g-4 mb-4">
+          <div class="col-lg-8">
+            <t t-set="progress_data" t-value="dashboard_data.get('progress', {})"/>
+            <t t-call="tesis_website_slide_arals.arals_progress_widget"/>
+          </div>
+          <div class="col-lg-4">
+            <t t-set="stats" t-value="dashboard_data.get('analytics', {}).get('stats', {})"/>
+            <t t-call="tesis_website_slide_arals.arals_student_stats"/>
+          </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+          <div class="col-lg-8">
+            <t t-set="learning_path" t-value="dashboard_data.get('learning_path')"/>
+            <t t-call="tesis_website_slide_arals.arals_learning_path"/>
+          </div>
+          <div class="col-lg-4">
+            <t t-set="profile" t-value="dashboard_data.get('profile', {})"/>
+            <t t-call="tesis_website_slide_arals.arals_learning_profile"/>
+          </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+          <div class="col-lg-6">
+            <div class="card h-100">
+              <div class="card-header">
+                <h5 class="mb-0"><i class="fa fa-chart-area text-primary me-2"/>Tendencia de Progreso</h5>
+              </div>
+              <div class="card-body">
+                <div class="chart-container">
+                  <canvas id="progressChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-3">
+            <div class="card h-100">
+              <div class="card-header">
+                <h5 class="mb-0"><i class="fa fa-bullseye text-info me-2"/>Distribución por Nivel</h5>
+              </div>
+              <div class="card-body">
+                <div class="chart-container">
+                  <canvas id="levelChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-3">
+            <div class="card h-100">
+              <div class="card-header">
+                <h5 class="mb-0"><i class="fa fa-hourglass-half text-warning me-2"/>Tiempo de Estudio</h5>
+              </div>
+              <div class="card-body">
+                <div class="chart-container">
+                  <canvas id="timeChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+          <div class="col-lg-8">
+            <t t-set="recommendations" t-value="dashboard_data.get('recommendations', [])"/>
+            <t t-call="tesis_website_slide_arals.arals_recommendations_panel"/>
+          </div>
+          <div class="col-lg-4">
+            <div class="card h-100">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fa fa-history text-primary me-2"/>Actividad Reciente</h5>
+                <a class="btn btn-sm btn-outline-secondary" href="/slides">Ver cursos</a>
+              </div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-hover mb-0">
+                    <thead>
+                      <tr>
+                        <th>Contenido</th>
+                        <th>Curso</th>
+                        <th>Estado</th>
+                        <th>Puntaje</th>
+                      </tr>
+                    </thead>
+                    <tbody data-role="recent-activity-body">
+                      <t t-foreach="recent_activity" t-as="item">
+                        <tr>
+                          <td>
+                            <t t-if="item.get('url')">
+                              <a t-att-href="item.get('url')" t-esc="item.get('slide')"/>
+                            </t>
+                            <t t-else="">
+                              <span t-esc="item.get('slide')"/>
+                            </t>
+                          </td>
+                          <td t-esc="item.get('channel')"/>
+                          <td>
+                            <span class="badge" t-att-class="'bg-success' if item.get('completed') else 'bg-warning text-dark'">
+                              <t t-esc="'Completado' if item.get('completed') else 'En progreso'"/>
+                            </span>
+                          </td>
+                          <td>
+                            <t t-esc="str(item.get('score', 0)) + '%'"/>
+                          </td>
+                        </tr>
+                      </t>
+                      <t t-if="not recent_activity">
+                        <tr>
+                          <td colspan="4" class="text-muted">Sin actividad reciente</td>
+                        </tr>
+                      </t>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fa fa-route text-primary me-2"/>Rutas Activas</h5>
+                <span class="badge text-bg-primary" t-esc="len(rutas)"/> rutas
+              </div>
+              <div class="card-body">
+                <div class="row g-3">
+                  <t t-foreach="rutas" t-as="ruta">
+                    <div class="col-md-4">
+                      <div class="border rounded p-3 h-100">
+                        <h6 class="mb-1" t-esc="ruta.name"/>
+                        <p class="text-muted small mb-2" t-esc="ruta.channel_id.name"/>
+                        <div class="progress mb-2">
+                          <div class="progress-bar"
+                               t-att-style="'width: %s%%' % int(ruta.progreso_ruta)"
+                               t-att-class="'bg-success' if ruta.progreso_ruta >= 70 else 'bg-info' if ruta.progreso_ruta >= 40 else 'bg-warning'">
+                            <span class="small"><t t-esc="int(ruta.progreso_ruta)"/>%</span>
+                          </div>
+                        </div>
+                        <div class="d-flex justify-content-between text-muted small">
+                          <span><i class="fa fa-layer-group me-1"/><t t-esc="len(ruta.slide_ids)"/> lecciones</span>
+                          <span><i class="fa fa-calendar me-1"/><t t-esc="ruta.fecha_actualizacion"/></span>
+                        </div>
+                      </div>
+                    </div>
+                  </t>
+                  <t t-if="not rutas">
+                    <div class="col-12">
+                      <div class="alert alert-light text-center mb-0">
+                        <i class="fa fa-info-circle text-primary me-2"/> No tienes rutas activas todavía.
+                      </div>
+                    </div>
+                  </t>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </t>
   </template>

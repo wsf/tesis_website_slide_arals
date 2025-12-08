@@ -188,6 +188,26 @@
         </record>
 
         <!-- Acción de ventana -->
+        <record id="action_arals_tracking_dashboard" model="ir.actions.act_window">
+            <field name="name">Panel de Seguimiento ARALS</field>
+            <field name="res_model">slide.historial.progreso</field>
+            <field name="view_mode">graph,pivot,list</field>
+            <field name="views">[(ref('view_historial_progreso_graph'), 'graph'), (ref('view_historial_progreso_pivot'), 'pivot'), (ref('view_historial_progreso_tree'), 'list')]</field>
+            <field name="context">{
+                'search_default_group_channel': 1,
+                'search_default_group_user': 1,
+                'search_default_esta_semana': 1,
+            }</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Monitoriza el avance de los estudiantes desde este tablero.
+                </p>
+                <p>
+                    Utiliza las vistas de gráfico y tabla dinámica para analizar tendencias, tiempos dedicados y puntuaciones por curso.
+                </p>
+            </field>
+        </record>
+
         <record id="action_historial_progreso" model="ir.actions.act_window">
             <field name="name">Historial de Progreso</field>
             <field name="res_model">slide.historial.progreso</field>
@@ -208,6 +228,13 @@
         </record>
 
         <!-- Menú -->
+        <menuitem 
+            id="menu_arals_tracking_dashboard"
+            name="Panel ARALS"
+            parent="website_slides.website_slides_menu_courses"
+            action="action_arals_tracking_dashboard"
+            sequence="10"/>
+
         <menuitem 
             id="menu_historial_progreso"
             name="Historial de Progreso"

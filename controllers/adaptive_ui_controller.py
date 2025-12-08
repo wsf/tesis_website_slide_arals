@@ -109,28 +109,31 @@ class AdaptiveUIController(WebsiteSlides):
         """Dashboard principal del estudiante con información adaptativa"""
         user = request.env.user
 
+        channel_id = kwargs.get('channel_id')
+        try:
+            channel_id = int(channel_id) if channel_id else False
+        except (TypeError, ValueError):
+            channel_id = False
+
+        profile_engine = request.env['slide.user.profile.engine']
+        dashboard_data = profile_engine.get_dashboard_payload(user.id, channel_id, limit=8)
+
         historial = request.env['slide.historial.progreso'].search([
             ('user_id', '=', user.id)
-        ], order='fecha_acceso desc', limit=50)
+        ], order='fecha_acceso desc', limit=10)
 
         rutas = request.env['slide.ruta.aprendizaje'].search([
             ('user_id', '=', user.id),
             ('activa', '=', True)
         ])
 
-        total_tiempo = sum(historial.mapped('tiempo_dedicado'))
-        total_completadas = len(historial.filtered(lambda h: h.completado))
-        promedio_puntuacion = (
-            sum(historial.mapped('puntuacion')) / len(historial)
-        ) if historial else 0
-
         return request.render('website_slides_adaptive.student_dashboard', {
             'user': user,
+            'dashboard_data': dashboard_data,
             'historial': historial,
             'rutas': rutas,
-            'total_tiempo': total_tiempo,
-            'total_completadas': total_completadas,
-            'promedio_puntuacion': promedio_puntuacion,
+            'notifications': dashboard_data.get('notifications', []),
+            'recent_activity': dashboard_data.get('analytics', {}).get('recent_activity', []),
         })
 
     @http.route('/slides/adaptive/teacher/dashboard', type='http', auth='user', website=True)
@@ -167,10 +170,56 @@ class AdaptiveUIController(WebsiteSlides):
                         'promedio': sum(historial.mapped('puntuacion')) / len(historial) if historial else 0
                     })
 
+        analytics = {
+            'active_students': len(estudiantes_data),
+            'completion_rate': 0,
+            'arals_effectiveness': 0,
+            'average_time': 0,
+        }
+
+        if estudiantes_data:
+            total_progress = sum(student['progreso'] for student in estudiantes_data)
+            total_score = sum(student['promedio'] for student in estudiantes_data)
+            total_time = sum(student['tiempo_total'] for student in estudiantes_data)
+            count = len(estudiantes_data)
+            analytics['completion_rate'] = round(total_progress / count, 1) if count else 0
+            analytics['arals_effectiveness'] = round(total_score / count, 1) if count else 0
+            analytics['average_time'] = round(total_time / count, 1) if count else 0
+
+        channel_summary_map = {}
+        for entry in estudiantes_data:
+            summary = channel_summary_map.setdefault(entry['canal'], {
+                'canal': entry['canal'],
+                'estudiantes': 0,
+                'progreso_acumulado': 0,
+                'tiempo_total': 0,
+                'puntaje_acumulado': 0,
+            })
+            summary['estudiantes'] += 1
+            summary['progreso_acumulado'] += entry['progreso']
+            summary['tiempo_total'] += entry['tiempo_total']
+            summary['puntaje_acumulado'] += entry['promedio']
+
+        channel_summary = []
+        for summary in channel_summary_map.values():
+            estudiantes = summary['estudiantes'] or 1
+            channel_summary.append({
+                'canal': summary['canal'],
+                'estudiantes': summary['estudiantes'],
+                'progreso_promedio': round(summary['progreso_acumulado'] / estudiantes, 1),
+                'tiempo_promedio': round(summary['tiempo_total'] / estudiantes, 1),
+                'puntaje_promedio': round(summary['puntaje_acumulado'] / estudiantes, 1),
+            })
+
+        leaderboard = sorted(estudiantes_data, key=lambda a: (a['progreso'], a['promedio']), reverse=True)[:5]
+
         return request.render('website_slides_adaptive.teacher_dashboard', {
             'user': user,
             'canales': canales,
             'estudiantes_data': estudiantes_data,
+            'channel_summary': channel_summary,
+            'leaderboard': leaderboard,
+            'analytics': analytics,
         })
 
     @http.route('/slides/adaptive/ruta/<int:ruta_id>', type='http', auth='user', website=True)

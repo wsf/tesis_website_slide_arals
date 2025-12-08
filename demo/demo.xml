@@ -51,6 +51,80 @@
             <field name="nivel_dificultad">intermedio</field>
             <field name="activa">True</field>
             <field name="descripcion">Ruta personalizada de demostración para el sistema ARALS.</field>
+            <field name="slide_ids" eval="[(6, 0, [ref('demo_slide_python_basics'), ref('demo_slide_python_control'), ref('demo_slide_python_oop')])]"/>
+        </record>
+
+        <!-- Historial de progreso de demostración -->
+        <record id="demo_historial_admin_basics" model="slide.historial.progreso">
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="slide_id" ref="demo_slide_python_basics"/>
+            <field name="channel_id" ref="demo_course_python"/>
+            <field name="tiempo_dedicado">32.5</field>
+            <field name="intentos_quiz">1</field>
+            <field name="puntuacion">95</field>
+            <field name="fecha_acceso">2025-11-25 09:30:00</field>
+            <field name="completado">True</field>
+            <field name="notas">Excelente dominio de los conceptos iniciales.</field>
+        </record>
+
+        <record id="demo_historial_admin_control" model="slide.historial.progreso">
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="slide_id" ref="demo_slide_python_control"/>
+            <field name="channel_id" ref="demo_course_python"/>
+            <field name="tiempo_dedicado">28.0</field>
+            <field name="intentos_quiz">2</field>
+            <field name="puntuacion">88</field>
+            <field name="fecha_acceso">2025-11-28 15:45:00</field>
+            <field name="completado">True</field>
+            <field name="notas">Reforzar estructuras de control anidadas.</field>
+        </record>
+
+        <record id="demo_historial_admin_oop" model="slide.historial.progreso">
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="slide_id" ref="demo_slide_python_oop"/>
+            <field name="channel_id" ref="demo_course_python"/>
+            <field name="tiempo_dedicado">19.2</field>
+            <field name="intentos_quiz">1</field>
+            <field name="puntuacion">62</field>
+            <field name="fecha_acceso">2025-12-01 11:20:00</field>
+            <field name="completado">False</field>
+            <field name="notas">Pendiente practicar herencia multiple.</field>
+        </record>
+
+        <record id="demo_historial_demo_basics" model="slide.historial.progreso">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="slide_id" ref="demo_slide_python_basics"/>
+            <field name="channel_id" ref="demo_course_python"/>
+            <field name="tiempo_dedicado">41.0</field>
+            <field name="intentos_quiz">3</field>
+            <field name="puntuacion">74</field>
+            <field name="fecha_acceso">2025-11-26 18:05:00</field>
+            <field name="completado">True</field>
+            <field name="notas">Aprendizaje gradual con ejemplos guiados.</field>
+        </record>
+
+        <record id="demo_historial_demo_control" model="slide.historial.progreso">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="slide_id" ref="demo_slide_python_control"/>
+            <field name="channel_id" ref="demo_course_python"/>
+            <field name="tiempo_dedicado">34.7</field>
+            <field name="intentos_quiz">2</field>
+            <field name="puntuacion">69</field>
+            <field name="fecha_acceso">2025-12-02 08:55:00</field>
+            <field name="completado">False</field>
+            <field name="notas">Dificultad con bucles while, necesita repaso.</field>
+        </record>
+
+        <record id="demo_historial_demo_oop" model="slide.historial.progreso">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="slide_id" ref="demo_slide_python_oop"/>
+            <field name="channel_id" ref="demo_course_python"/>
+            <field name="tiempo_dedicado">22.3</field>
+            <field name="intentos_quiz">1</field>
+            <field name="puntuacion">58</field>
+            <field name="fecha_acceso">2025-12-03 10:40:00</field>
+            <field name="completado">False</field>
+            <field name="notas">Aun no completa ejercicios de clases y objetos.</field>
         </record>
 
     </data>

@@ -39,35 +39,9 @@ class APIController(http.Controller):
             channel_id = int(channel_id) if channel_id else False
 
             profile_engine = request.env['slide.user.profile.engine']
-            adaptive_service = request.env['slide.adaptive.learning.service']
-
-            if not channel_id:
-                ruta = request.env['slide.ruta.aprendizaje'].search([
-                    ('user_id', '=', user.id),
-                    ('activa', '=', True)
-                ], limit=1)
-                channel_id = ruta.channel_id.id if ruta else False
-
-            recommendations = []
-            if channel_id:
-                recommendations = adaptive_service.generate_recommendations(
-                    user.id,
-                    channel_id,
-                    limit=limit,
-                ).get('recommendations', [])
-
-            progress = profile_engine.get_progress_overview(user.id, channel_id)
-            profile = profile_engine.get_learning_profile(user.id)
-            learning_path = profile_engine.get_learning_path_snapshot(user.id, channel_id)
-
-            return {
-                'status': 'success',
-                'progress': progress,
-                'profile': profile,
-                'learning_path': learning_path,
-                'recommendations': recommendations,
-                'notifications': [],
-            }
+            payload = profile_engine.get_dashboard_payload(user.id, channel_id, limit=limit)
+            payload['status'] = 'success'
+            return payload
         except Exception as e:
             _logger.exception("Error al obtener datos de usuario ARALS")
             return {
