@@ -105,6 +105,53 @@
               </div>
             </div>
           </div>
+
+          <div class="row g-4 mt-1">
+            <div class="col-12">
+              <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="mb-0"><i class="fa fa-map text-secondary me-2"/>Indicadores de Hojas de Ruta</h5>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                      <thead>
+                        <tr>
+                          <th>Usuario</th>
+                          <th>Rutas activas</th>
+                          <th>Registros de uso</th>
+                          <th>Recursos asociados</th>
+                          <th>Utilidad estimada</th>
+                          <th>Aceptación estimada</th>
+                          <th>Último uso</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <t t-foreach="route_metrics" t-as="metric">
+                          <tr>
+                            <td t-esc="metric['user_name']"/>
+                            <td t-esc="metric['route_count']"/>
+                            <td t-esc="metric['usage_records']"/>
+                            <td t-esc="metric['resource_count']"/>
+                            <td><t t-esc="'%.1f' % metric['utility_score']"/>%</td>
+                            <td><t t-esc="'%.1f' % metric['acceptance_score']"/>%</td>
+                            <td><t t-esc="metric.get('last_usage') or 'Sin registros'"/></td>
+                          </tr>
+                        </t>
+                        <t t-if="not route_metrics">
+                          <tr>
+                            <td colspan="7" class="text-muted text-center py-4">
+                              No hay rutas de aprendizaje asociadas a tus estudiantes todavía.
+                            </td>
+                          </tr>
+                        </t>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </t>

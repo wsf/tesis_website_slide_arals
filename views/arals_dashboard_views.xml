@@ -33,5 +33,27 @@
             </field>
         </record>
 
+        <!-- Acceso directo al panel del profesor desde el menú del sitio -->
+        <record id="website_menu_arals_teacher_panel" model="website.menu">
+            <field name="name">Panel Profesor ARALS</field>
+            <field name="url">/slides/adaptive/teacher/dashboard</field>
+            <field name="parent_id" ref="website_slides.website_menu_slides"/>
+            <field name="sequence" eval="80"/>
+        </record>
+
+        <!-- acceso desde el menú backoffice -->
+        <record id="action_arals_teacher_dashboard" model="ir.actions.act_url">
+            <field name="name">Panel Profesor ARALS</field>
+            <field name="target">new</field>
+            <field name="url">/slides/adaptive/teacher/dashboard</field>
+        </record>
+
+        <menuitem id="menu_arals_teacher_dashboard"
+              name="Panel Profesor ARALS"
+              parent="website_slides.website_slides_menu_courses"
+                  action="action_arals_teacher_dashboard"
+                  sequence="85"
+                  groups="website_slides.group_website_slides_officer"/>
+
     </data>
 </odoo>

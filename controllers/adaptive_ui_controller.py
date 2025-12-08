@@ -3,6 +3,7 @@ from collections import defaultdict
 
 from odoo import http
 from odoo.http import request
+from odoo.tools import format_datetime
 from odoo.addons.website_slides.controllers.main import WebsiteSlides
 
 class AdaptiveUIController(WebsiteSlides):
@@ -127,7 +128,7 @@ class AdaptiveUIController(WebsiteSlides):
             ('activa', '=', True)
         ])
 
-        return request.render('website_slides_adaptive.student_dashboard', {
+        return request.render('tesis_website_slide_arals.student_dashboard', {
             'user': user,
             'dashboard_data': dashboard_data,
             'historial': historial,
@@ -213,13 +214,92 @@ class AdaptiveUIController(WebsiteSlides):
 
         leaderboard = sorted(estudiantes_data, key=lambda a: (a['progreso'], a['promedio']), reverse=True)[:5]
 
-        return request.render('website_slides_adaptive.teacher_dashboard', {
+        route_metrics = []
+        student_user_ids = set()
+        for canal in canales:
+            for miembro in canal.slide_partner_ids:
+                for user_rec in miembro.partner_id.user_ids:
+                    if user_rec._is_public():
+                        continue
+                    student_user_ids.add(user_rec.id)
+
+        if student_user_ids:
+            Ruta = request.env['slide.ruta.aprendizaje']
+            Historial = request.env['slide.historial.progreso']
+            student_users = request.env['res.users'].browse(list(student_user_ids))
+
+            routes_by_user = defaultdict(lambda: request.env['slide.ruta.aprendizaje'])
+            for ruta in Ruta.search([('user_id', 'in', student_users.ids)]):
+                routes_by_user[ruta.user_id.id] |= ruta
+
+            historial_by_user = defaultdict(lambda: request.env['slide.historial.progreso'])
+            for registro in Historial.search([('user_id', 'in', student_users.ids)]):
+                historial_by_user[registro.user_id.id] |= registro
+
+            for student in student_users:
+                user_routes = routes_by_user.get(student.id, request.env['slide.ruta.aprendizaje'])
+                user_historial = historial_by_user.get(student.id, request.env['slide.historial.progreso'])
+
+                route_count = len(user_routes)
+                route_slide_ids = set(user_routes.mapped('slide_ids').ids)
+                route_channel_ids = set(user_routes.mapped('channel_id').ids)
+
+                relevant_historial = user_historial.filtered(
+                    lambda rec: (
+                        rec.slide_id and rec.slide_id.id in route_slide_ids
+                    ) or (
+                        rec.channel_id and rec.channel_id.id in route_channel_ids
+                    )
+                )
+
+                usage_count = len(relevant_historial)
+                last_usage_dt = max(relevant_historial.mapped('fecha_acceso')) if relevant_historial else False
+                last_usage = format_datetime(request.env, last_usage_dt) if last_usage_dt else False
+
+                resource_count = len(route_slide_ids)
+                utility_score = 0.0
+                acceptance_score = 0.0
+
+                if route_count:
+                    total_progress = sum(user_routes.mapped('progreso_ruta'))
+                    utility_score = round(total_progress / route_count, 1)
+
+                    routes_with_activity = 0
+                    for ruta in user_routes:
+                        ruta_slide_ids = set(ruta.slide_ids.ids)
+                        has_activity = any(
+                            (
+                                registro.slide_id and registro.slide_id.id in ruta_slide_ids
+                            ) or (
+                                registro.channel_id and registro.channel_id.id == ruta.channel_id.id
+                            )
+                            for registro in relevant_historial
+                        )
+                        if has_activity:
+                            routes_with_activity += 1
+
+                    acceptance_score = round((routes_with_activity / route_count) * 100, 1)
+
+                route_metrics.append({
+                    'user_name': student.partner_id.name or student.name,
+                    'route_count': route_count,
+                    'usage_records': usage_count,
+                    'resource_count': resource_count,
+                    'utility_score': utility_score,
+                    'acceptance_score': acceptance_score,
+                    'last_usage': last_usage,
+                })
+
+        route_metrics.sort(key=lambda entry: entry['user_name'])
+
+        return request.render('tesis_website_slide_arals.teacher_dashboard', {
             'user': user,
             'canales': canales,
             'estudiantes_data': estudiantes_data,
             'channel_summary': channel_summary,
             'leaderboard': leaderboard,
             'analytics': analytics,
+            'route_metrics': route_metrics,
         })
 
     @http.route('/slides/adaptive/ruta/<int:ruta_id>', type='http', auth='user', website=True)
@@ -230,6 +310,6 @@ class AdaptiveUIController(WebsiteSlides):
         if not ruta.exists() or ruta.user_id != request.env.user:
             return request.redirect('/slides/adaptive/dashboard')
 
-        return request.render('website_slides_adaptive.ruta_detalle', {
+        return request.render('tesis_website_slide_arals.ruta_detalle', {
             'ruta': ruta,
         })
